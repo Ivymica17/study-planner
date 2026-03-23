@@ -26,6 +26,9 @@ export default function Layout() {
           <NavLink to="/tasks" className={({ isActive }) => `flex items-center px-6 py-3 ${isActive ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}>
             <span className="mr-3">✓</span> Tasks
           </NavLink>
+          <NavLink to="/quiz-stats" className={({ isActive }) => `flex items-center px-6 py-3 ${isActive ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}>
+            <span className="mr-3">🎯</span> Quiz Stats
+          </NavLink>
         </nav>
         <div className="absolute bottom-0 w-full p-4 border-t">
           <div className="mb-3">

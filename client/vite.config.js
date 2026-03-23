@@ -8,7 +8,8 @@ export default defineConfig({
     proxy: {
       '/auth': 'http://localhost:5000',
       '/modules': 'http://localhost:5000',
-      '/tasks': 'http://localhost:5000'
+      '/tasks': 'http://localhost:5000',
+      '/goals': 'http://localhost:5000'
     }
   }
 })

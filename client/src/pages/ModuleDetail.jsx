@@ -5,18 +5,51 @@ export default function ModuleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [module, setModule] = useState(null);
+  const [quizStats, setQuizStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
 
-  useEffect(() => {
-    const fetchModule = async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/modules/${id}`, { headers: { 'x-auth-token': token } });
+  const regenerateQuiz = async () => {
+    const token = localStorage.getItem('token');
+    setRegenerating(true);
+    try {
+      const res = await fetch(`/modules/${id}/regenerate-quiz`, {
+        method: 'POST',
+        headers: { 'x-auth-token': token }
+      });
       if (res.ok) {
-        setModule(await res.json());
+        const updatedModule = await res.json();
+        setModule(updatedModule);
+        alert('✅ Quiz regenerated! Questions: ' + (updatedModule.quizQuestions?.length || 0));
+      } else {
+        alert('❌ Failed to regenerate quiz');
       }
-      setLoading(false);
+    } catch (err) {
+      console.error('Error regenerating quiz:', err);
+      alert('❌ Error regenerating quiz');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+      const token = localStorage.getItem('token');
+      try {
+        const [moduleRes, statsRes] = await Promise.all([
+          fetch(`/modules/${id}`, { headers: { 'x-auth-token': token } }),
+          fetch(`/modules/${id}/quiz-stats`, { headers: { 'x-auth-token': token } })
+        ]);
+        if (moduleRes.ok) {
+          setModule(await moduleRes.json());
+        }
+        if (statsRes.ok) {
+          setQuizStats(await statsRes.json());
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchModule();
+    fetchData();
   }, [id]);
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
@@ -57,24 +90,64 @@ export default function ModuleDetail() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Quiz</h2>
-            <p className="text-gray-600 mb-4">Test your knowledge with {module.quizQuestions?.length || 0} questions.</p>
+          {/* Quiz Card with Stats */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">📚 Quick Quiz</h2>
+            <p className="text-gray-600 mb-4">{module.quizQuestions?.length || 0} questions • Interactive assessment</p>
+            
+            {/* Warning if no questions */}
+            {(!module.quizQuestions || module.quizQuestions.length === 0) && (
+              <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ Quiz questions are being generated. Please refresh the page in a moment.
+                </p>
+              </div>
+            )}
+            
+            {/* Stats if attempted */}
+            {quizStats && quizStats.totalAttempts > 0 && (
+              <div className="mb-4 p-4 bg-white rounded-lg border">
+                <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Your Performance</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-2xl font-bold text-green-600">{quizStats.bestScore}</p>
+                    <p className="text-xs text-gray-600">Best Score</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-600">{quizStats.averageScore}</p>
+                    <p className="text-xs text-gray-600">Avg Score</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mt-3">
+                  <strong>{quizStats.totalAttempts}</strong> attempts • <strong>{quizStats.successRate}</strong> success rate
+                </p>
+              </div>
+            )}
+
             <button
-              onClick={() => navigate(`/modules/${id}/quiz`)}
-              disabled={!module.quizQuestions?.length}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => navigate(`/quiz/${id}`)}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
             >
-              Start Quiz
+              {quizStats?.totalAttempts > 0 ? 'Retake Quiz' : 'Start Quiz'}
             </button>
+
+            {/* Regenerate Quiz Button if no questions */}
+            {(!module.quizQuestions || module.quizQuestions.length === 0) && (
+              <button
+                onClick={regenerateQuiz}
+                disabled={regenerating}
+                className="w-full mt-3 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {regenerating ? 'Generating...' : '🔄 Generate Quiz Now'}
+              </button>
+            )}
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Original Content</h2>
-            <div className="max-h-96 overflow-y-auto">
-              <p className="text-gray-600 whitespace-pre-wrap text-sm">
-                {module.originalText?.slice(0, 2000) || 'No content available'}
-                {module.originalText?.length > 2000 && '...'}
+            <div className="max-h-full overflow-y-auto bg-gray-50 p-4 rounded-lg">
+              <p className="text-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
+                {module.originalText || 'No content available'}
               </p>
             </div>
           </div>

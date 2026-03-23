@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Modules from './pages/Modules';
 import ModuleDetail from './pages/ModuleDetail';
 import Quiz from './pages/Quiz';
+import QuizHistory from './pages/QuizHistory';
+import QuizStats from './pages/QuizStats';
 import Tasks from './pages/Tasks';
 import Layout from './components/Layout';
 
@@ -26,7 +28,9 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="modules" element={<Modules />} />
             <Route path="modules/:id" element={<ModuleDetail />} />
-            <Route path="modules/:id/quiz" element={<Quiz />} />
+            <Route path="quiz/:id" element={<Quiz />} />
+            <Route path="quiz-history/:moduleId" element={<QuizHistory />} />
+            <Route path="quiz-stats" element={<QuizStats />} />
             <Route path="tasks" element={<Tasks />} />
           </Route>
         </Routes>

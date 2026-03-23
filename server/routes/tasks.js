@@ -15,7 +15,7 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, deadline } = req.body;
+    const { title, deadline, priority } = req.body;
     if (!title) {
       return res.status(400).json({ message: 'Title is required' });
     }
@@ -23,7 +23,8 @@ router.post('/', auth, async (req, res) => {
     const task = new Task({
       userId: req.user.id,
       title,
-      deadline: deadline || null
+      deadline: deadline || null,
+      priority: priority || 'Medium'
     });
 
     await task.save();
@@ -35,9 +36,17 @@ router.post('/', auth, async (req, res) => {
 
 router.patch('/:id', auth, async (req, res) => {
   try {
+    const { completed, priority, title, deadline } = req.body;
+    const updateData = {};
+    
+    if (completed !== undefined) updateData.completed = completed;
+    if (priority) updateData.priority = priority;
+    if (title) updateData.title = title;
+    if (deadline) updateData.deadline = deadline;
+
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
-      { completed: req.body.completed },
+      updateData,
       { new: true }
     );
 
