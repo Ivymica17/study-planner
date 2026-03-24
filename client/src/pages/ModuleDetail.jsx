@@ -8,6 +8,7 @@ export default function ModuleDetail() {
   const [quizStats, setQuizStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
 
   const regenerateQuiz = async () => {
     const token = localStorage.getItem('token');
@@ -31,6 +32,39 @@ export default function ModuleDetail() {
       setRegenerating(false);
     }
   };
+
+  const generateFlashcards = async () => {
+    const token = localStorage.getItem('token');
+    console.log('Generating flashcards for module:', id);
+    console.log('Token exists:', !!token);
+    setGeneratingFlashcards(true);
+    try {
+      const res = await fetch(`/flashcards/${id}/generate`, {
+        method: 'POST',
+        headers: { 'x-auth-token': token }
+      });
+      console.log('Response status:', res.status);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Success data:', data);
+        alert(`✅ ${data.count} flashcards generated! Ready to study.`);
+        navigate('/flashcards');
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.log('Error data:', errorData);
+        const msg = errorData.message || 'Failed to generate flashcards';
+        alert(`❌ ${msg}`);
+      }
+    } catch (err) {
+      console.error('Error generating flashcards:', err);
+      alert(`❌ Error generating flashcards: ${err.message}`);
+    } finally {
+      setGeneratingFlashcards(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
       const token = localStorage.getItem('token');
       try {
         const [moduleRes, statsRes] = await Promise.all([
@@ -141,6 +175,28 @@ export default function ModuleDetail() {
                 {regenerating ? 'Generating...' : '🔄 Generate Quiz Now'}
               </button>
             )}
+
+            {quizStats && quizStats.totalAttempts > 0 && (
+              <button
+                onClick={() => navigate(`/quiz-history/${id}`)}
+                className="w-full mt-3 border border-blue-300 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50 transition"
+              >
+                View Attempt History
+              </button>
+            )}
+
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">🎴 Flashcards</h2>
+            <p className="text-gray-600 mb-4">Master concepts with interactive flashcards</p>
+            <button
+              onClick={generateFlashcards}
+              disabled={generatingFlashcards}
+              className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generatingFlashcards ? 'Generating...' : '✨ Generate & Study Flashcards'}
+            </button>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border p-6">

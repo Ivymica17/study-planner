@@ -9,8 +9,12 @@ const moduleSchema = new mongoose.Schema({
   quizQuestions: [{
     question: String,
     options: [String],
-    correctAnswer: Number
+    correctAnswer: Number,
+    difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+    type: { type: String, enum: ['mcq', 'trueFalse'], default: 'mcq' },
+    usedCount: { type: Number, default: 0 }
   }],
+  usedQuestionIndices: [{ type: Number }], // Track which questions user has already seen
   fileName: String,
 }, { timestamps: true });
 

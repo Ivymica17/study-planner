@@ -8,6 +8,7 @@ import ModuleDetail from './pages/ModuleDetail';
 import Quiz from './pages/Quiz';
 import QuizHistory from './pages/QuizHistory';
 import QuizStats from './pages/QuizStats';
+import Flashcards from './pages/Flashcards';
 import Tasks from './pages/Tasks';
 import Layout from './components/Layout';
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="quiz/:id" element={<Quiz />} />
             <Route path="quiz-history/:moduleId" element={<QuizHistory />} />
             <Route path="quiz-stats" element={<QuizStats />} />
+            <Route path="flashcards" element={<Flashcards />} />
             <Route path="tasks" element={<Tasks />} />
           </Route>
         </Routes>

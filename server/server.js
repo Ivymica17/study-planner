@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import moduleRoutes from './routes/modules.js';
 import taskRoutes from './routes/tasks.js';
 import goalRoutes from './routes/goals.js';
+import flashcardRoutes from './routes/flashcards.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use('/auth', authRoutes);
 app.use('/modules', moduleRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/goals', goalRoutes);
+app.use('/flashcards', flashcardRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

@@ -15,6 +15,8 @@ export default function Quiz() {
   const [timeLimit, setTimeLimit] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [expanded, setExpanded] = useState({});
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  const [filteredQuestions, setFilteredQuestions] = useState([]);
 
   // Fetch module and quiz stats
   useEffect(() => {
@@ -65,7 +67,16 @@ export default function Quiz() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const startQuiz = (minutes) => {
+  const startQuiz = (minutes, difficulty = null) => {
+    if (difficulty) {
+      setSelectedDifficulty(difficulty);
+      // Filter questions by difficulty level
+      const filtered = (module.quizQuestions || []).filter(q => q.difficulty === difficulty);
+      setFilteredQuestions(filtered);
+      console.log(`Loaded ${filtered.length} ${difficulty} questions`);
+    } else {
+      setFilteredQuestions(module.quizQuestions || []);
+    }
     setTimeLimit(minutes);
     if (minutes === null) {
       setTimeRemaining(Infinity); // Unlimited time
@@ -87,7 +98,10 @@ export default function Quiz() {
           'Content-Type': 'application/json',
           'x-auth-token': token
         },
-        body: JSON.stringify({ answers: Object.values(answers) })
+        body: JSON.stringify({ 
+          answers: Object.values(answers),
+          difficulty: selectedDifficulty 
+        })
       });
 
       if (res.ok) {
@@ -106,6 +120,8 @@ export default function Quiz() {
     setAnswers({});
     setResult(null);
     setTimeRemaining(null);
+    setSelectedDifficulty(null);
+    setFilteredQuestions([]);
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
@@ -161,6 +177,31 @@ export default function Quiz() {
               )}
             </div>
           )}
+
+          {/* Difficulty Level Selection */}
+          <h3 className="font-semibold text-gray-800 mb-3 mt-6">Select Difficulty Level</h3>
+          <div className="grid grid-cols-3 gap-3 mb-8">
+            <button
+              onClick={() => startQuiz(null, 'easy')}
+              className="px-4 py-3 rounded-lg border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 transition font-medium text-sm"
+            >
+              🟢 Easy
+            </button>
+            <button
+              onClick={() => startQuiz(null, 'medium')}
+              className="px-4 py-3 rounded-lg border-2 border-yellow-500 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition font-medium text-sm"
+            >
+              🟡 Medium
+            </button>
+            <button
+              onClick={() => startQuiz(null, 'hard')}
+              className="px-4 py-3 rounded-lg border-2 border-red-500 bg-red-50 text-red-700 hover:bg-red-100 transition font-medium text-sm"
+            >
+              🔴 Hard
+            </button>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-4">Or select a time limit below and start with all difficulty levels:</p>
 
           {/* Timer Options */}
           <h3 className="font-semibold text-gray-800 mb-3">Select Time Limit (Optional)</h3>
@@ -223,14 +264,16 @@ export default function Quiz() {
       {/* Timer */}
       {timeRemaining !== null && (
         <div className={`mb-6 p-4 rounded-lg text-center font-bold text-2xl ${
+          timeRemaining === Infinity ? 'bg-green-100 text-green-700' :
           timeRemaining < 60 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
         }`}>
-          ⏱️ Time Remaining: {formatTime(timeRemaining)}
+          ⏱️ Time Remaining: {timeRemaining === Infinity ? 'Unlimited Time' : formatTime(timeRemaining)}
         </div>
       )}
 
       <h1 className="text-3xl font-bold text-gray-800 mb-2">{module.title}</h1>
-      <p className="text-gray-600 mb-8">Quiz - {module.quizQuestions?.length || 0} Questions</p>
+      <p className="text-gray-600 mb-2">Quiz - {(filteredQuestions.length || module.quizQuestions?.length || 0)} Questions</p>
+      {selectedDifficulty && <p className="text-sm font-semibold text-orange-600 mb-8">📊 Difficulty: <span className="capitalize">{selectedDifficulty}</span></p>}
 
       {/* Result Summary */}
       {result && (
@@ -260,7 +303,7 @@ export default function Quiz() {
 
       {/* Questions */}
       <div className="space-y-4">
-        {module.quizQuestions?.map((q, qIndex) => {
+        {(filteredQuestions.length > 0 ? filteredQuestions : module.quizQuestions)?.map((q, qIndex) => {
           const isSelected = answers[qIndex] !== undefined;
           const selectedAnswer = answers[qIndex];
           const isCorrect = submitted && q.correctAnswer === selectedAnswer;
@@ -288,6 +331,17 @@ export default function Quiz() {
                      qIndex + 1}
                   </span>
                   <h3 className="font-semibold text-lg text-gray-800">Question {qIndex + 1}</h3>
+                  {q.difficulty && (
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      q.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                      q.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {q.difficulty === 'easy' ? '🟢 EASY' :
+                       q.difficulty === 'medium' ? '🟡 MEDIUM' :
+                       '🔴 HARD'}
+                    </span>
+                  )}
                 </div>
                 {submitted && (
                   <button
@@ -298,6 +352,15 @@ export default function Quiz() {
                   </button>
                 )}
               </div>
+
+              {/* Case Scenario - for case-based questions */}
+              {q.caseScenario && (
+                <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                  <p className="text-xs font-semibold text-blue-700 mb-1">📋 CASE SCENARIO:</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{q.caseScenario}</p>
+                  {q.topic && <p className="mt-2 text-xs font-semibold text-blue-600">Topic: {q.topic}</p>}
+                </div>
+              )}
 
               <p className="text-gray-700 mb-4 font-medium">{q.question}</p>
 
