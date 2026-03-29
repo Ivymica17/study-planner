@@ -15,12 +15,210 @@ if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')) 
 }
 
 const SUMMARY_PROMPT = 'Summarize this study material into bullet points. Highlight key concepts clearly.';
-const QUIZ_PROMPT = 'Generate 5 multiple choice questions with 4 choices each and indicate the correct answer. Return JSON format with this structure: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":0}]}';
+const QUIZ_PROMPT = 'Generate board-exam style MCQs from the core concepts only (ignore headers, footers, page labels, metadata). Use one-best-answer format with realistic vignettes, high-quality distractors, and no giveaway wording. Include a balanced mix of easy, medium, and hard cognitive levels. Return JSON only in this structure: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":0}]}';
 
-// Generate difficulty-specific questions (Easy, Medium, Hard pools)
+// Strip noisy PDF headers/footers and repeated lines.
+const stripPdfNoise = (raw) => {
+  if (!raw) return '';
+
+  // Normalize common unicode spaces and line endings
+  const text = String(raw)
+    .replace(/\r\n/g, '\n')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim();
+
+  const lines = text
+    .split('\n')
+    .map(l => l.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) return '';
+
+  // Count repeated lines (typical for headers/footers across pages)
+  const freq = new Map();
+  for (const l of lines) freq.set(l, (freq.get(l) || 0) + 1);
+
+  const isPageMarker = (l) =>
+    /^page\s*\d+(\s*of\s*\d+)?$/i.test(l) ||
+    /^\d+\s*\/\s*\d+$/i.test(l) ||
+    /^-\s*\d+\s*-$/.test(l) ||
+    /^\d+$/.test(l);
+
+  const looksLikeFooterHeader = (l) =>
+    /(confidential|property of|all rights reserved|copyright|©|page \d+|header|footer|student\s*name|course|section|name:|id:)/i.test(l);
+
+  const cleaned = lines.filter((l) => {
+    // Drop obvious markers
+    if (isPageMarker(l)) return false;
+
+    // Drop repeated short-ish lines (likely headers/footers)
+    const count = freq.get(l) || 0;
+    if (count >= 3 && l.length <= 90) return false;
+
+    // Drop very short header/footer-like lines
+    if (l.length <= 25 && looksLikeFooterHeader(l)) return false;
+
+    // Drop lines that are mostly separators
+    if (/^[\W_]{3,}$/.test(l)) return false;
+
+    return true;
+  });
+
+  return cleaned.join('\n').trim();
+};
+
+const STOPWORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'if', 'then', 'than', 'that', 'this', 'those', 'these',
+  'is', 'are', 'was', 'were', 'be', 'been', 'being', 'to', 'of', 'in', 'on', 'for', 'by', 'with',
+  'at', 'from', 'as', 'it', 'its', 'their', 'there', 'about', 'into', 'over', 'under', 'through'
+]);
+
+const normalizeForCompare = (s) => String(s || '')
+  .toLowerCase()
+  .replace(/[^a-z0-9\s]/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const cleanSentenceText = (s) => {
+  let out = String(s || '').replace(/\s+/g, ' ').trim();
+  // Remove leading bullets/symbols
+  out = out.replace(/^[•*\-–—\d\)\(.\s]+/, '');
+  // Remove uppercase heading fragments before proper sentence content
+  out = out.replace(/^([A-Z][A-Z\s,&()/\-]{8,})\s+(The|This|It|An|A)\b/, '$2');
+  // Drop obvious header/footer leftovers
+  out = out.replace(/\b(page\s*\d+(\s*of\s*\d+)?|all rights reserved|confidential|property of)\b/gi, '').trim();
+  return out;
+};
+
+const sentenceParts = (text) =>
+  (text.match(/[^.!?]+[.!?]+/g) || [])
+    .map(s => cleanSentenceText(s))
+    .map(s => s.replace(/\s+/g, ' ').trim())
+    .filter(s => s.length >= 45 && s.length <= 220);
+
+const toCompleteSentence = (input) => {
+  const s = String(input || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  return /[.!?]$/.test(s) ? s : `${s}.`;
+};
+
+const shortenAtWordBoundary = (text, max = 140) => {
+  if (!text || text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  const safe = lastSpace > 40 ? cut.slice(0, lastSpace) : cut;
+  return `${safe}.`;
+};
+
+const uniqueBy = (arr, selector) => {
+  const seen = new Set();
+  return arr.filter((item) => {
+    const key = selector(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const extractKeywords = (sentence) =>
+  normalizeForCompare(sentence)
+    .split(' ')
+    .filter(w => w.length > 3 && !STOPWORDS.has(w));
+
+const getTopicPhrase = (sentence) => {
+  const words = extractKeywords(sentence);
+  if (words.length === 0) return 'this concept';
+  return words.slice(0, 3).join(' ');
+};
+
+const optionFromSentence = (sentence) => {
+  const s = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(sentence)), 135);
+  return s.startsWith('•') ? s.slice(1).trim() : s;
+};
+
+const pickDistractors = (target, pool, count = 3) => {
+  const tKeywords = new Set(extractKeywords(target));
+  const scored = pool
+    .filter(s => normalizeForCompare(s) !== normalizeForCompare(target))
+    .map((s) => {
+      const kws = extractKeywords(s);
+      const overlap = kws.filter(k => tKeywords.has(k)).length;
+      const lengthGap = Math.abs(s.length - target.length);
+      // Prefer some topical overlap but not too close to avoid duplicates.
+      const score = overlap * 5 - Math.min(lengthGap, 120) / 20;
+      return { s, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.s);
+
+  return uniqueBy(scored, s => normalizeForCompare(s)).slice(0, count);
+};
+
+const buildWrongOptions = (correct) => {
+  const generic = [
+    'It overgeneralizes the concept beyond the material scope.',
+    'It reverses the causal direction implied in the material.',
+    'It confuses a related term with the main concept.',
+    'It applies the concept to a context not supported by the text.'
+  ];
+  return generic.filter(opt => opt.toLowerCase() !== correct.toLowerCase()).slice(0, 3);
+};
+
+const shuffleOptions = (options, correctIndex = 0) => {
+  const tagged = options.map((o, i) => ({ o, i }));
+  for (let i = tagged.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tagged[i], tagged[j]] = [tagged[j], tagged[i]];
+  }
+  return {
+    options: tagged.map(x => x.o),
+    correctAnswer: tagged.findIndex(x => x.i === correctIndex)
+  };
+};
+
+const buildExamQuestion = (sentence, difficulty, idx, pool) => {
+  const correct = optionFromSentence(sentence);
+  const distractorsRaw = pickDistractors(sentence, pool, 3);
+  if (distractorsRaw.length < 3) return null;
+  const distractors = distractorsRaw.map(optionFromSentence);
+  const { options, correctAnswer } = shuffleOptions([correct, ...distractors], 0);
+  const topic = getTopicPhrase(sentence);
+
+  const easyStems = [
+    `According to the module, which statement is correct about ${topic}?`,
+    `Which statement best matches the module's explanation of ${topic}?`,
+    `Which option is explicitly supported by the module regarding ${topic}?`
+  ];
+  const mediumStems = [
+    `Which inference is most consistent with the module's discussion of ${topic}?`,
+    `Based on the module, which interpretation of ${topic} is strongest?`,
+    `Which conclusion about ${topic} is best supported by the text?`
+  ];
+  const hardStems = [
+    `A trainee must decide how to apply ${topic} in a real situation. Which option is the single best answer based on the module?`,
+    `When applying ${topic} to a practical case, which option is most defensible using the module content?`,
+    `Which choice shows the strongest applied judgment on ${topic} based on the module evidence?`
+  ];
+
+  const stem = difficulty === 'easy'
+    ? easyStems[idx % easyStems.length]
+    : difficulty === 'medium'
+      ? mediumStems[idx % mediumStems.length]
+      : hardStems[idx % hardStems.length];
+
+  return {
+    question: stem,
+    options,
+    correctAnswer,
+    difficulty,
+    type: 'mcq'
+  };
+};
+
+// Generate difficulty-specific, exam-style questions
 const generateMultipleChoiceQuestions = (text) => {
-  // Clean text
-  let cleanText = text
+  const cleanText = stripPdfNoise(text)
     .replace(/^[^\n]*(?:Property of|STI|student|confidential|©).*$/gim, '')
     .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '')
     .replace(/^.*(©|copyright|all rights reserved|disclaimer|confidential|proprietary|page \d+).*/gim, '')
@@ -30,120 +228,41 @@ const generateMultipleChoiceQuestions = (text) => {
     .replace(/\n\s*\n+/g, '\n')
     .trim();
 
-  const sentences = cleanText.match(/[^.!?]+[.!?]+/g) || [];
-  
-  // Categorize sentences by complexity
-  const simpleSentences = [], mediumSentences = [], complexSentences = [];
-  
-  sentences.forEach(s => {
-    const cleaned = s.replace(/[.!?]/g, '').trim();
-    const length = cleaned.length;
-    const wordCount = cleaned.split(/\s+/).length;
-    const commas = (cleaned.match(/,/g) || []).length;
-    
-    // Simple: shorter, fewer clauses (Easy difficulty)
-    if (length > 40 && length < 120 && wordCount < 20) {
-      simpleSentences.push(cleaned);
-    }
-    // Medium: moderate length, some complexity
-    else if (length >= 120 && length < 200 && wordCount >= 20 && wordCount < 40 && commas < 3) {
-      mediumSentences.push(cleaned);
-    }
-    // Complex: longer, more clauses (Hard difficulty)
-    else if (length >= 200 && length < 300 && wordCount > 40 && commas >= 2) {
-      complexSentences.push(cleaned);
-    }
+  const sentences = uniqueBy(sentenceParts(cleanText), (s) => s.toLowerCase());
+  if (sentences.length === 0) return [];
+
+  const easyPool = [];
+  const mediumPool = [];
+  const hardPool = [];
+
+  sentences.forEach((s, i) => {
+    const wc = s.split(/\s+/).length;
+    if (wc <= 18) easyPool.push(s);
+    else if (wc <= 32) mediumPool.push(s);
+    else hardPool.push(s);
   });
 
-  const allQuestions = [];
+  const backfill = [...sentences];
+  const fill = (arr, min) => {
+    for (let i = 0; arr.length < min && i < backfill.length; i += 1) arr.push(backfill[i]);
+  };
+  fill(easyPool, 8);
+  fill(mediumPool, 8);
+  fill(hardPool, 8);
 
-  // EASY QUESTIONS - Straightforward comprehension
-  simpleSentences.slice(0, 6).forEach((sent, idx) => {
-    allQuestions.push({
-      question: `What does the material state about: "${sent.substring(0, 80)}..."?`,
-      options: [
-        `"${sent.substring(0, 60)}..." is accurate`,
-        'This contradicts the material',
-        'The material does not address this',
-        'This is a common misconception'
-      ],
-      correctAnswer: 0,
-      difficulty: 'easy',
-      type: 'mcq'
-    });
-    
-    if (allQuestions.filter(q => q.difficulty === 'easy').length < 8) {
-      allQuestions.push({
-        question: `True or False: "${sent.substring(0, 90)}"?`,
-        options: ['True', 'False'],
-        correctAnswer: 0,
-        difficulty: 'easy',
-        type: 'trueFalse'
-      });
-    }
-  });
+  const easyQs = uniqueBy(easyPool, (s) => s.toLowerCase())
+    .slice(0, 8)
+    .map((s, i) => buildExamQuestion(s, 'easy', i, sentences))
+    .filter(Boolean);
+  const mediumQs = uniqueBy(mediumPool, (s) => s.toLowerCase())
+    .slice(0, 8)
+    .map((s, i) => buildExamQuestion(s, 'medium', i, sentences))
+    .filter(Boolean);
+  const hardQs = uniqueBy(hardPool, (s) => s.toLowerCase())
+    .slice(0, 8)
+    .map((s, i) => buildExamQuestion(s, 'hard', i, sentences))
+    .filter(Boolean);
 
-  // MEDIUM QUESTIONS - Interpretation and analysis
-  mediumSentences.slice(0, 6).forEach((sent, idx) => {
-    const terms = sent.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g) || [];
-    const mainTerm = terms[0] || 'the concept';
-    
-    allQuestions.push({
-      question: `Based on the material, what is implied about ${mainTerm}?`,
-      options: [
-        `${sent.substring(0, 70)}...`,
-        'The opposite of what the material suggests',
-        'Something unrelated to the main topic',
-        'Information not found in the material'
-      ],
-      correctAnswer: 0,
-      difficulty: 'medium',
-      type: 'mcq'
-    });
-    
-    if (allQuestions.filter(q => q.difficulty === 'medium').length < 8) {
-      allQuestions.push({
-        question: `Can you infer from the material: "${sent.substring(0, 85)}"?`,
-        options: ['Yes', 'No'],
-        correctAnswer: 0,
-        difficulty: 'medium',
-        type: 'trueFalse'
-      });
-    }
-  });
-
-  // HARD QUESTIONS - Synthesis and critical thinking
-  complexSentences.slice(0, 6).forEach((sent, idx) => {
-    allQuestions.push({
-      question: `Analyze: Which statement best captures the material's position on: "${sent.substring(0, 100)}"?`,
-      options: [
-        `The material emphasizes: "${sent.substring(0, 75)}"...`,
-        'The material contradicts this interpretation',
-        'This requires outside knowledge not in the material',
-        'All of the above perspectives are equally supported'
-      ],
-      correctAnswer: 0,
-      difficulty: 'hard',
-      type: 'mcq'
-    });
-    
-    if (allQuestions.filter(q => q.difficulty === 'hard').length < 8) {
-      allQuestions.push({
-        question: `Critically evaluate: "${sent.substring(0, 90)}"?`,
-        options: ['Substantiated', 'Debatable'],
-        correctAnswer: 0,
-        difficulty: 'hard',
-        type: 'trueFalse'
-      });
-    }
-  });
-
-  // Ensure we have at least 8 questions per difficulty
-  const easyQs = allQuestions.filter(q => q.difficulty === 'easy').slice(0, 8);
-  const mediumQs = allQuestions.filter(q => q.difficulty === 'medium').slice(0, 8);
-  const hardQs = allQuestions.filter(q => q.difficulty === 'hard').slice(0, 8);
-
-  // Combine all questions (8 per difficulty = 24 total)
   return [...easyQs, ...mediumQs, ...hardQs];
 };
 
@@ -333,7 +452,7 @@ const generateFallbackQuiz = (text) => {
   }
 
   // Clean text: Remove headers, footers, page numbers, emails, disclaimers
-  let cleanText = text
+  let cleanText = stripPdfNoise(text)
     // Remove document headers/footers with watermarks
     .replace(/^[^\n]*(?:Property of|STI|student|confidential|©).*$/gim, '')
     // Remove page numbers (standalone numbers at start/end of lines)
@@ -466,11 +585,12 @@ const generateFallbackQuiz = (text) => {
 const processWithAI = async (text) => {
   if (!openai) {
     console.warn('⚠️ OpenAI API key not configured - generating quiz using local method');
+    const cleaned = stripPdfNoise(text);
     // Use new difficulty-specific question generation
-    const quizQuestions = generateMultipleChoiceQuestions(text);
+    const quizQuestions = generateMultipleChoiceQuestions(cleaned);
     
     // Extract academic summary (ignore disclaimers, headers, etc.)
-    const cleanedForSummary = text
+    const cleanedForSummary = cleaned
       .replace(/^.*(©|copyright|all rights reserved|disclaimer|confidential|page \d+).*/gim, '')
       .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '');
     
@@ -482,7 +602,7 @@ const processWithAI = async (text) => {
       .join('. ') + '.';
     
     // Extract key academic concepts
-    const keyConcepts = text
+    const keyConcepts = cleaned
       .split(/\s+/)
       .filter(w => w.length > 5 && w[0] === w[0].toUpperCase() && /^[A-Za-z-]+$/.test(w))
       .filter((w, i, arr) => arr.indexOf(w) === i) // Remove duplicates
@@ -492,17 +612,18 @@ const processWithAI = async (text) => {
   }
   try {
     console.log('📚 Starting AI processing for text...');
+    const cleaned = stripPdfNoise(text);
     
     const summaryResponse = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: `${SUMMARY_PROMPT}\n\n${text.slice(0, 4000)}` }]
+      messages: [{ role: 'user', content: `${SUMMARY_PROMPT}\n\n${cleaned.slice(0, 4000)}` }]
     });
     const summary = summaryResponse.choices[0].message.content;
     console.log('✅ Summary generated');
 
     const quizResponse = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: `${QUIZ_PROMPT}\n\n${text.slice(0, 4000)}` }]
+      messages: [{ role: 'user', content: `${QUIZ_PROMPT}\n\n${cleaned.slice(0, 4000)}` }]
     });
 
     let quizData;
@@ -542,10 +663,11 @@ const processWithAI = async (text) => {
     console.error('❌ AI Processing Error:', err.message);
     console.log('📚 Falling back to local quiz generation...');
     // Use new difficulty-specific generation
-    const quizQuestions = generateMultipleChoiceQuestions(text);
+    const cleaned = stripPdfNoise(text);
+    const quizQuestions = generateMultipleChoiceQuestions(cleaned);
     
     // Extract academic summary using the same rules
-    const cleanedForSummary = text
+    const cleanedForSummary = cleaned
       .replace(/^.*(©|copyright|all rights reserved|disclaimer|confidential|page \d+).*/gim, '')
       .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '');
     
@@ -557,7 +679,7 @@ const processWithAI = async (text) => {
       .join('. ') + '.';
     
     // Extract key academic concepts
-    const keyConcepts = text
+    const keyConcepts = cleaned
       .split(/\s+/)
       .filter(w => w.length > 5 && w[0] === w[0].toUpperCase() && /^[A-Za-z-]+$/.test(w))
       .filter((w, i, arr) => arr.indexOf(w) === i) // Remove duplicates
@@ -587,12 +709,14 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
       return res.status(400).json({ message: 'No content provided' });
     }
 
-    const aiResult = await processWithAI(text);
+    // Clean PDF noise early so everything downstream uses the important content.
+    const cleanedText = stripPdfNoise(text);
+    const aiResult = await processWithAI(cleanedText);
 
     const module = new Module({
       userId: req.user.id,
       title: title || 'Untitled Module',
-      originalText: text,
+      originalText: cleanedText,
       summary: aiResult.summary,
       keyConcepts: aiResult.keyConcepts,
       quizQuestions: aiResult.quizQuestions,

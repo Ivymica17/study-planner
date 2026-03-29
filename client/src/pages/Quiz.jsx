@@ -68,14 +68,19 @@ export default function Quiz() {
   };
 
   const startQuiz = (minutes, difficulty = null) => {
+    const all = module?.quizQuestions || [];
     if (difficulty) {
       setSelectedDifficulty(difficulty);
       // Filter questions by difficulty level
-      const filtered = (module.quizQuestions || []).filter(q => q.difficulty === difficulty);
+      const filtered = all.filter(q => q.difficulty === difficulty);
+      if (filtered.length === 0) {
+        alert(`⚠️ No ${difficulty} questions available for this module. Try another difficulty or regenerate the quiz.`);
+        return;
+      }
       setFilteredQuestions(filtered);
       console.log(`Loaded ${filtered.length} ${difficulty} questions`);
     } else {
-      setFilteredQuestions(module.quizQuestions || []);
+      setFilteredQuestions(all);
     }
     setTimeLimit(minutes);
     if (minutes === null) {
@@ -92,6 +97,7 @@ export default function Quiz() {
   const handleSubmit = async () => {
     const token = localStorage.getItem('token');
     try {
+      const currentQuestions = filteredQuestions.length > 0 ? filteredQuestions : (module.quizQuestions || []);
       const res = await fetch(`/modules/${id}/quiz`, {
         method: 'POST',
         headers: {
@@ -99,7 +105,7 @@ export default function Quiz() {
           'x-auth-token': token
         },
         body: JSON.stringify({ 
-          answers: Object.values(answers),
+          answers: Array.from({ length: currentQuestions.length }, (_, i) => answers[i]),
           difficulty: selectedDifficulty 
         })
       });
@@ -433,7 +439,7 @@ export default function Quiz() {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={Object.keys(answers).length !== module.quizQuestions?.length}
+              disabled={Object.keys(answers).length !== (filteredQuestions.length > 0 ? filteredQuestions.length : (module.quizQuestions?.length || 0))}
               className="px-8 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 font-semibold"
             >
               Submit Answers

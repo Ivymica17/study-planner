@@ -10,6 +10,7 @@ export default function Flashcards() {
   const [view, setView] = useState('list'); // 'list' or 'study'
   const [selectedModule, setSelectedModule] = useState(null);
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -24,10 +25,13 @@ export default function Flashcards() {
       });
       if (res.ok) {
         const data = await res.json();
-        setAllFlashcards(data);
+        setAllFlashcards(Array.isArray(data) ? data : []);
+      } else {
+        setError('Failed to load flashcards.');
       }
     } catch (err) {
       console.error('Error fetching flashcards:', err);
+      setError('Error loading flashcards.');
     } finally {
       setLoading(false);
     }
@@ -36,10 +40,14 @@ export default function Flashcards() {
   const groupByModule = () => {
     const grouped = {};
     allFlashcards.forEach(card => {
-      const moduleId = card.moduleId._id;
+      // Guard against records with missing/invalid module references.
+      const moduleRef = card?.moduleId;
+      const moduleId = typeof moduleRef === 'object' ? moduleRef?._id : moduleRef;
+      if (!moduleId) return;
+
       if (!grouped[moduleId]) {
         grouped[moduleId] = {
-          title: card.moduleId.title,
+          title: (typeof moduleRef === 'object' ? moduleRef?.title : null) || 'Untitled Module',
           cards: []
         };
       }
@@ -84,6 +92,11 @@ export default function Flashcards() {
 
       <h1 className="text-4xl font-bold text-gray-800 mb-2">📚 Flashcards</h1>
       <p className="text-gray-600 mb-8">Learn efficiently with auto-generated flashcards from your modules</p>
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          {error}
+        </div>
+      )}
 
       {Object.keys(grouped).length === 0 ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-12 text-center">
@@ -311,24 +324,38 @@ function StudyMode({ moduleId, onBack, stats }) {
           transformStyle: 'preserve-3d'
         }}
       >
+        {/* Flip container: rotate wrapper, keep each face properly oriented */}
         <div
-          className={`absolute w-full h-full rounded-xl shadow-lg p-8 flex flex-col justify-center items-center transition-all duration-500 ${
-            isFlipped
-              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-400'
-              : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-400'
-          }`}
+          className="absolute inset-0 transition-all duration-500"
           style={{
             transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
             transformStyle: 'preserve-3d'
           }}
         >
-          <div className={`text-center ${isFlipped ? 'text-green-900' : 'text-blue-900'}`}>
-            <p className={`text-sm font-semibold mb-4 ${isFlipped ? 'text-green-700' : 'text-blue-700'}`}>
-              {isFlipped ? '✅ Answer' : '❓ Question'}
-            </p>
-            <p className="text-2xl font-bold leading-relaxed">
-              {isFlipped ? currentCard.back : currentCard.front}
-            </p>
+          {/* Front face */}
+          <div
+            className="absolute inset-0 rounded-xl shadow-lg p-8 flex flex-col justify-center items-center border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 text-center"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
+          >
+            <p className="text-sm font-semibold mb-4 text-blue-700">❓ Question</p>
+            <p className="text-2xl font-bold leading-relaxed text-blue-900">{currentCard.front}</p>
+            <p className="text-xs mt-6 opacity-60">Click to flip</p>
+          </div>
+
+          {/* Back face */}
+          <div
+            className="absolute inset-0 rounded-xl shadow-lg p-8 flex flex-col justify-center items-center border-2 border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 text-center"
+            style={{
+              transform: 'rotateY(180deg)',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
+            }}
+          >
+            <p className="text-sm font-semibold mb-4 text-green-700">✅ Answer</p>
+            <p className="text-2xl font-bold leading-relaxed text-green-900">{currentCard.back}</p>
             <p className="text-xs mt-6 opacity-60">Click to flip</p>
           </div>
         </div>

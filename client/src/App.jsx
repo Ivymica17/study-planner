@@ -10,6 +10,7 @@ import QuizHistory from './pages/QuizHistory';
 import QuizStats from './pages/QuizStats';
 import Flashcards from './pages/Flashcards';
 import Tasks from './pages/Tasks';
+import StudyArea from './pages/StudyArea';
 import Layout from './components/Layout';
 
 function ProtectedRoute({ children }) {
@@ -33,6 +34,7 @@ function App() {
             <Route path="quiz-history/:moduleId" element={<QuizHistory />} />
             <Route path="quiz-stats" element={<QuizStats />} />
             <Route path="flashcards" element={<Flashcards />} />
+            <Route path="study-area" element={<StudyArea />} />
             <Route path="tasks" element={<Tasks />} />
           </Route>
         </Routes>

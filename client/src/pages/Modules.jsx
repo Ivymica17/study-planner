@@ -78,12 +78,24 @@ export default function Modules() {
         
         fetchModules();
       } else {
-        const errorData = await res.json();
-        setError(errorData.message || 'Failed to upload module');
+        // Backend should return JSON, but proxies/404s sometimes return HTML/text.
+        let msg = 'Failed to upload module';
+        try {
+          const errorData = await res.json();
+          msg = errorData?.message || msg;
+        } catch {
+          try {
+            const text = await res.text();
+            if (text && text.trim()) msg = text;
+          } catch {
+            // ignore
+          }
+        }
+        setError(`${msg} (HTTP ${res.status})`);
       }
     } catch (err) {
       console.error(err);
-      setError('Error uploading module');
+      setError(`Error uploading module: ${err.message}`);
     } finally {
       setUploading(false);
     }

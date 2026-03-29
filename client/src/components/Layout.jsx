@@ -26,6 +26,9 @@ export default function Layout() {
           <NavLink to="/flashcards" className={({ isActive }) => `flex items-center px-6 py-3 ${isActive ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}>
             <span className="mr-3">🎴</span> Flashcards
           </NavLink>
+          <NavLink to="/study-area" className={({ isActive }) => `flex items-center px-6 py-3 ${isActive ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}>
+            <span className="mr-3">📝</span> Study Area
+          </NavLink>
           <NavLink to="/tasks" className={({ isActive }) => `flex items-center px-6 py-3 ${isActive ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}>
             <span className="mr-3">✓</span> Tasks
           </NavLink>

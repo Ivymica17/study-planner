@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import HandoutAnnotator from '../components/HandoutAnnotator';
 
 export default function ModuleDetail() {
   const { id } = useParams();
@@ -199,13 +200,9 @@ export default function ModuleDetail() {
             </button>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Original Content</h2>
-            <div className="max-h-full overflow-y-auto bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
-                {module.originalText || 'No content available'}
-              </p>
-            </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Handout Viewer & Notes</h2>
+            <HandoutAnnotator moduleId={module._id} content={module.originalText || 'No content available'} />
           </div>
         </div>
       </div>

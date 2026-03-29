@@ -70,12 +70,12 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
       return terms;
     };
 
-    // Generate flashcards from key concepts
+    // Generate exam-style flashcards from key concepts
     keyConcepts.forEach((concept, idx) => {
       if (concept) {
         flashcards.push({
-          front: `What is ${concept}?`,
-          back: `${concept} is one of the key concepts in this module. Review the module material for detailed understanding.`,
+          front: `Exam Recall: Define "${concept}" in your own words.`,
+          back: `${concept} is a core concept from this module. State its definition, why it matters, and one practical implication from your handout.`,
           difficulty: idx % 3 === 0 ? 'easy' : idx % 3 === 1 ? 'medium' : 'hard'
         });
       }
@@ -88,15 +88,15 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
     console.log('Extracted terms:', extractedTerms.length);
     extractedTerms.forEach((term, idx) => {
       flashcards.push({
-        front: term.front,
-        back: term.back,
+        front: `Exam Concept: ${term.front}`,
+        back: `Expected answer: ${term.back}`,
         difficulty: idx % 3 === 0 ? 'easy' : idx % 3 === 1 ? 'medium' : 'hard'
       });
     });
 
     console.log('After term extraction, flashcards count:', flashcards.length);
 
-    // If not enough flashcards, generate from sentences
+    // If not enough flashcards, generate from meaningful sentences (exam/application style)
     if (flashcards.length < 10) {
       const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20 && s.trim().length < 200);
       console.log('Found sentences:', sentences.length);
@@ -104,8 +104,8 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
         const sentence = sentences[i].trim();
         if (sentence) {
           flashcards.push({
-            front: `Explain: ${sentence.substring(0, 60)}...`,
-            back: sentence,
+            front: `Application: In an exam setting, explain this idea -> ${sentence.substring(0, 80)}...`,
+            back: `Model answer: ${sentence}`,
             difficulty: i % 3 === 0 ? 'easy' : i % 3 === 1 ? 'medium' : 'hard'
           });
         }
