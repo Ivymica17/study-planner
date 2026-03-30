@@ -1,0 +1,4 @@
+
+> study-planner-server@1.0.0 dev
+> node --watch server.js
+

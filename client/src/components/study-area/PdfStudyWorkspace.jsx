@@ -1,0 +1,513 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Document, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/TextLayer.css';
+import { useNavigate } from 'react-router-dom';
+import StudySidebar from './StudySidebar';
+import StudyToolbar from './StudyToolbar';
+import PdfPageStage from './PdfPageStage';
+import {
+  DRAW_COLORS,
+  HIGHLIGHT_COLORS,
+  buildPdfSrc,
+  clamp,
+  createEmptyWorkspaceState,
+  createHighlightFromSelection,
+  getPageDrawingState,
+  getPageHighlights,
+  loadWorkspaceState,
+  saveWorkspaceState,
+} from '../../utils/studyWorkspace';
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
+
+function EmptyWorkspace({ hasModules, onBrowseModules }) {
+  return (
+    <div className="flex h-full flex-1 items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(125,211,252,0.18),_transparent_42%),linear-gradient(180deg,_#f8fbff_0%,_#eef4f8_100%)] p-8">
+      <div className="max-w-xl rounded-[32px] border border-slate-200 bg-white/90 p-10 text-center shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-700">Study Area</p>
+        <h3 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+          {hasModules ? 'Choose a PDF to open your workspace' : 'Your study workspace is ready'}
+        </h3>
+        <p className="mt-4 text-base leading-7 text-slate-600">
+          {hasModules
+            ? 'Select a PDF from the left to continue reading, annotating, and saving your progress page by page.'
+            : 'Upload a PDF reviewer, handout, or module to start highlighting and drawing directly on top of the document.'}
+        </p>
+        <div className="mt-8 grid gap-3 rounded-[28px] bg-slate-50 p-4 text-left text-sm text-slate-600 sm:grid-cols-3">
+          <div className="rounded-2xl bg-white p-4 shadow-sm">
+            <div className="font-semibold text-slate-800">Highlights</div>
+            <div className="mt-1">Select text and color-code important ideas.</div>
+          </div>
+          <div className="rounded-2xl bg-white p-4 shadow-sm">
+            <div className="font-semibold text-slate-800">Pen Tools</div>
+            <div className="mt-1">Sketch diagrams, circle terms, and erase cleanly.</div>
+          </div>
+          <div className="rounded-2xl bg-white p-4 shadow-sm">
+            <div className="font-semibold text-slate-800">Saved Progress</div>
+            <div className="mt-1">Return to the same page with your notes intact.</div>
+          </div>
+        </div>
+        {!hasModules && (
+          <button
+            type="button"
+            onClick={onBrowseModules}
+            className="mt-8 rounded-2xl border border-slate-200 bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+          >
+            Go to Modules
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function PdfStudyWorkspace({
+  modules,
+  selectedModule,
+  selectedModuleId,
+  initialPage = 1,
+  onSelectModule,
+  onUpload,
+  onDelete,
+  uploading,
+}) {
+  const navigate = useNavigate();
+  const [numPages, setNumPages] = useState(0);
+  const [workspaceState, setWorkspaceState] = useState(createEmptyWorkspaceState());
+  const [activeTool, setActiveTool] = useState('select');
+  const [highlightColor, setHighlightColor] = useState(HIGHLIGHT_COLORS[0].value);
+  const [highlightStyle, setHighlightStyle] = useState('medium');
+  const [brushColor, setBrushColor] = useState(DRAW_COLORS[0]);
+  const [brushSize, setBrushSize] = useState(4);
+  const [pendingSelection, setPendingSelection] = useState(null);
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [uploadFile, setUploadFile] = useState(null);
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pdfFileUrl, setPdfFileUrl] = useState('');
+  const [pdfError, setPdfError] = useState('');
+  const [highlightRedoByPage, setHighlightRedoByPage] = useState({});
+
+  const pdfRequestUrl = useMemo(
+    () => buildPdfSrc(selectedModuleId, selectedModule?.fileType),
+    [selectedModule?.fileType, selectedModuleId],
+  );
+  const currentPage = clamp(workspaceState.currentPage || 1, 1, numPages || 1);
+  const currentDrawingState = getPageDrawingState(workspaceState, currentPage);
+  const currentHighlights = getPageHighlights(workspaceState, currentPage);
+
+  useEffect(() => {
+    if (!selectedModuleId) {
+      setWorkspaceState(createEmptyWorkspaceState());
+      setPendingSelection(null);
+      setNumPages(0);
+      setHighlightRedoByPage({});
+      return;
+    }
+
+    const persisted = loadWorkspaceState(selectedModuleId);
+    setWorkspaceState(persisted);
+    setPendingSelection(null);
+    setActiveTool('select');
+    setPdfError('');
+    setHighlightRedoByPage({});
+    const hasSelectedPdf = Boolean(buildPdfSrc(selectedModuleId, selectedModule?.fileType));
+    setDocumentLoading(hasSelectedPdf);
+    setPageLoading(hasSelectedPdf);
+  }, [selectedModule, selectedModuleId]);
+
+  useEffect(() => {
+    if (!selectedModuleId || !initialPage || initialPage < 1) return;
+    setWorkspaceState((prev) => ({ ...prev, currentPage: initialPage }));
+  }, [initialPage, selectedModuleId]);
+
+  useEffect(() => {
+    if (!pdfRequestUrl) {
+      setPdfFileUrl('');
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    let objectUrl = '';
+
+    const loadPdf = async () => {
+      try {
+        setPdfError('');
+        setDocumentLoading(true);
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(pdfRequestUrl, {
+          headers: { 'x-auth-token': token || '' },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch PDF (${response.status})`);
+        }
+
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setPdfFileUrl(objectUrl);
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error('Failed to fetch PDF file:', error);
+        setPdfFileUrl('');
+        setPdfError('Failed to load PDF file.');
+        setDocumentLoading(false);
+        setPageLoading(false);
+      }
+    };
+
+    loadPdf();
+
+    return () => {
+      controller.abort();
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [pdfRequestUrl]);
+
+  useEffect(() => {
+    if (!selectedModuleId) return;
+    saveWorkspaceState(selectedModuleId, workspaceState);
+  }, [selectedModuleId, workspaceState]);
+
+  useEffect(() => {
+    setPendingSelection(null);
+    if (numPages > 0) {
+      setWorkspaceState((prev) => ({
+        ...prev,
+        currentPage: clamp(prev.currentPage || 1, 1, numPages),
+      }));
+    }
+  }, [numPages]);
+
+  useEffect(() => {
+    if (numPages > 0) {
+      setPageLoading(true);
+    }
+  }, [currentPage, numPages, workspaceState.zoom]);
+
+  const updateWorkspaceState = (updater) => {
+    setWorkspaceState((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      return next;
+    });
+  };
+
+  const updatePageDrawing = (pageNumber, updater) => {
+    updateWorkspaceState((prev) => {
+      const current = getPageDrawingState(prev, pageNumber);
+      const nextDrawingState = updater(current);
+      return {
+        ...prev,
+        drawingsByPage: {
+          ...prev.drawingsByPage,
+          [pageNumber]: nextDrawingState,
+        },
+      };
+    });
+  };
+
+  const updatePageHighlights = (pageNumber, updater) => {
+    updateWorkspaceState((prev) => {
+      const current = getPageHighlights(prev, pageNumber);
+      return {
+        ...prev,
+        highlightsByPage: {
+          ...prev.highlightsByPage,
+          [pageNumber]: updater(current),
+        },
+      };
+    });
+  };
+
+  const handleAddHighlight = (pageNumber, selection, color) => {
+    setHighlightRedoByPage((prev) => ({ ...prev, [pageNumber]: [] }));
+    updatePageHighlights(pageNumber, (current) => [
+      ...current,
+      createHighlightFromSelection(selection, color, highlightStyle),
+    ]);
+  };
+
+  const handleApplyHighlight = (color) => {
+    setHighlightColor(color);
+    if (activeTool !== 'highlighter') {
+      setActiveTool('highlighter');
+    }
+    if (!pendingSelection || pendingSelection.pageNumber !== currentPage) return;
+
+    setHighlightRedoByPage((prev) => ({ ...prev, [currentPage]: [] }));
+    updatePageHighlights(currentPage, (current) => [
+      ...current,
+      createHighlightFromSelection(pendingSelection, color, highlightStyle),
+    ]);
+    setPendingSelection(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const handleAddStroke = (pageNumber, stroke) => {
+    updatePageDrawing(pageNumber, (current) => ({
+      strokes: [...(current.strokes || []), stroke],
+      undone: [],
+    }));
+  };
+
+  const handleUndoDrawing = () => {
+    if (!currentDrawingState.strokes?.length) return;
+    updatePageDrawing(currentPage, (current) => {
+      const strokes = [...current.strokes];
+      const removed = strokes.pop();
+      return {
+        strokes,
+        undone: removed ? [...(current.undone || []), removed] : current.undone || [],
+      };
+    });
+  };
+
+  const handleRedoDrawing = () => {
+    if (!currentDrawingState.undone?.length) return;
+    updatePageDrawing(currentPage, (current) => {
+      const undone = [...(current.undone || [])];
+      const restored = undone.pop();
+      return {
+        strokes: restored ? [...(current.strokes || []), restored] : current.strokes || [],
+        undone,
+      };
+    });
+  };
+
+  const handleClearDrawing = () => {
+    updatePageDrawing(currentPage, () => ({ strokes: [], undone: [] }));
+  };
+
+  const handleClearHighlights = () => {
+    if (currentHighlights.length > 0) {
+      setHighlightRedoByPage((prev) => ({
+        ...prev,
+        [currentPage]: [...(prev[currentPage] || []), ...currentHighlights.map((highlight) => ({ type: 'add', highlight }))],
+      }));
+    }
+    updatePageHighlights(currentPage, () => []);
+    setPendingSelection(null);
+  };
+
+  const handleRemoveHighlight = (pageNumber, highlightId) => {
+    const target = getPageHighlights(workspaceState, pageNumber).find((highlight) => highlight.id === highlightId);
+    if (!target) return;
+
+    setHighlightRedoByPage((prev) => ({
+      ...prev,
+      [pageNumber]: [...(prev[pageNumber] || []), { type: 'remove', highlight: target }],
+    }));
+    updatePageHighlights(pageNumber, (current) => current.filter((highlight) => highlight.id !== highlightId));
+  };
+
+  const handleUndoHighlight = () => {
+    const current = getPageHighlights(workspaceState, currentPage);
+    if (!current.length) return;
+
+    const removed = current[current.length - 1];
+    setHighlightRedoByPage((prev) => ({
+      ...prev,
+      [currentPage]: [...(prev[currentPage] || []), { type: 'remove', highlight: removed }],
+    }));
+    updatePageHighlights(currentPage, (items) => items.slice(0, -1));
+  };
+
+  const handleRedoHighlight = () => {
+    const redoStack = highlightRedoByPage[currentPage] || [];
+    const lastAction = redoStack[redoStack.length - 1];
+    if (!lastAction) return;
+
+    setHighlightRedoByPage((prev) => ({
+      ...prev,
+      [currentPage]: redoStack.slice(0, -1),
+    }));
+
+    if (lastAction.type === 'remove') {
+      updatePageHighlights(currentPage, (current) => [...current, lastAction.highlight]);
+      return;
+    }
+
+    if (lastAction.type === 'add') {
+      updatePageHighlights(currentPage, (current) =>
+        current.filter((highlight) => highlight.id !== lastAction.highlight.id),
+      );
+    }
+  };
+
+  const handleUploadSubmit = async (event) => {
+    event.preventDefault();
+    if (!uploadTitle.trim() || !uploadFile) return;
+
+    const createdModuleId = await onUpload({
+      title: uploadTitle.trim(),
+      file: uploadFile,
+    });
+
+    if (createdModuleId) {
+      setUploadTitle('');
+      setUploadFile(null);
+    }
+  };
+
+  const hasPdf = Boolean(pdfRequestUrl);
+  const isHighlightToolActive = activeTool === 'highlighter' || activeTool === 'remove-highlight';
+  const canUndo = isHighlightToolActive
+    ? Boolean(currentHighlights.length)
+    : Boolean(currentDrawingState.strokes?.length);
+  const canRedo = isHighlightToolActive
+    ? Boolean((highlightRedoByPage[currentPage] || []).length)
+    : Boolean(currentDrawingState.undone?.length);
+  const hasHighlights = currentHighlights.length > 0;
+  const hasDrawings = currentDrawingState.strokes?.length > 0;
+
+  return (
+    <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_32px_100px_rgba(15,23,42,0.08)]">
+      <div className="flex min-h-[calc(100vh-10rem)] flex-col xl:flex-row">
+        <StudySidebar
+          modules={modules}
+          selectedModuleId={selectedModuleId}
+          pdfUrl={pdfFileUrl}
+          totalPages={numPages}
+          currentPage={currentPage}
+          onSelectModule={onSelectModule}
+          onDeleteModule={onDelete}
+          onSelectPage={(pageNumber) => updateWorkspaceState((prev) => ({ ...prev, currentPage: pageNumber }))}
+          uploadTitle={uploadTitle}
+          uploadFileName={uploadFile?.name || ''}
+          uploading={uploading}
+          onUploadTitleChange={setUploadTitle}
+          onUploadFileChange={(event) => setUploadFile(event.target.files?.[0] || null)}
+          onUpload={handleUploadSubmit}
+        />
+
+        <div className="flex min-h-[70vh] flex-1 flex-col bg-[linear-gradient(180deg,_#f8fbff_0%,_#edf3f8_100%)]">
+          {!selectedModule ? (
+            <EmptyWorkspace hasModules={modules.length > 0} onBrowseModules={() => navigate('/modules')} />
+          ) : !hasPdf ? (
+            <EmptyWorkspace hasModules={modules.length > 0} onBrowseModules={() => navigate('/modules')} />
+          ) : (
+            <>
+              <div className="border-b border-slate-200 bg-white/85 px-4 py-4 backdrop-blur">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Open Document</p>
+                    <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{selectedModule.title}</h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {selectedModule.fileName || 'Uploaded PDF'} • Progress is saved locally for this file.
+                    </p>
+                    {activeTool === 'highlighter' && (
+                      <p className="mt-2 text-sm font-medium text-amber-700">
+                        Highlighter mode is on. Select text on the page to apply the chosen color.
+                      </p>
+                    )}
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <div className="font-semibold text-slate-800">Study flow</div>
+                    <div className="mt-1">Select text to highlight, switch to pen to sketch, then come back anytime.</div>
+                  </div>
+                </div>
+              </div>
+
+              <StudyToolbar
+                currentPage={currentPage}
+                totalPages={numPages}
+                zoom={workspaceState.zoom}
+                activeTool={activeTool}
+                highlightColor={highlightColor}
+                highlightStyle={highlightStyle}
+                brushColor={brushColor}
+                brushSize={brushSize}
+                canUndo={canUndo}
+                canRedo={canRedo}
+                hasHighlights={hasHighlights}
+                hasDrawings={hasDrawings}
+                hasPendingSelection={Boolean(pendingSelection)}
+                onPreviousPage={() => updateWorkspaceState((prev) => ({ ...prev, currentPage: clamp(currentPage - 1, 1, numPages) }))}
+                onNextPage={() => updateWorkspaceState((prev) => ({ ...prev, currentPage: clamp(currentPage + 1, 1, numPages) }))}
+                onZoomOut={() => updateWorkspaceState((prev) => ({ ...prev, zoom: clamp((prev.zoom || 100) - 10, 60, 180) }))}
+                onZoomIn={() => updateWorkspaceState((prev) => ({ ...prev, zoom: clamp((prev.zoom || 100) + 10, 60, 180) }))}
+                onResetZoom={() => updateWorkspaceState((prev) => ({ ...prev, zoom: 100 }))}
+                onToolChange={(tool) => {
+                  setActiveTool(tool);
+                  if (tool === 'pen' || tool === 'eraser' || tool === 'remove-highlight') {
+                    setPendingSelection(null);
+                    window.getSelection()?.removeAllRanges();
+                  }
+                }}
+                onApplyHighlight={handleApplyHighlight}
+                onHighlightStyleChange={setHighlightStyle}
+                onBrushColorChange={setBrushColor}
+                onBrushSizeChange={setBrushSize}
+                onUndoDrawing={isHighlightToolActive ? handleUndoHighlight : handleUndoDrawing}
+                onRedoDrawing={isHighlightToolActive ? handleRedoHighlight : handleRedoDrawing}
+                onClearDrawing={handleClearDrawing}
+                onClearHighlights={handleClearHighlights}
+              />
+
+              <div className="study-scroll-area relative flex-1 overflow-auto">
+                {(documentLoading || pageLoading) && (
+                  <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-4">
+                    <div className="rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-sm font-medium text-sky-700 shadow-sm">
+                      Rendering your study page...
+                    </div>
+                  </div>
+                )}
+
+                {pdfError ? (
+                  <div className="flex h-full min-h-[420px] items-center justify-center p-8">
+                    <div className="rounded-3xl border border-rose-200 bg-white px-6 py-5 text-sm text-rose-700 shadow-sm">
+                      {pdfError}
+                    </div>
+                  </div>
+                ) : pdfFileUrl ? (
+                  <Document
+                    file={pdfFileUrl}
+                    onLoadSuccess={({ numPages: pages }) => {
+                      setNumPages(pages);
+                      setDocumentLoading(false);
+                    }}
+                    onLoadError={(error) => {
+                      console.error('Failed to load PDF:', error);
+                      setPdfError('Failed to load PDF file.');
+                      setDocumentLoading(false);
+                      setPageLoading(false);
+                    }}
+                    loading={null}
+                    className="min-h-full"
+                  >
+                    <PdfPageStage
+                      pageNumber={currentPage}
+                      zoom={workspaceState.zoom}
+                      activeTool={activeTool}
+                      highlights={currentHighlights}
+                      drawingState={currentDrawingState}
+                      brushColor={brushColor}
+                      brushSize={brushSize}
+                      highlightColor={highlightColor}
+                      onSelectionChange={setPendingSelection}
+                      onAddHighlight={handleAddHighlight}
+                      onAddStroke={handleAddStroke}
+                      onRemoveHighlight={handleRemoveHighlight}
+                      onPageRenderSuccess={() => setPageLoading(false)}
+                      onPageRenderError={(error) => {
+                        console.error('Failed to render page:', error);
+                        setPageLoading(false);
+                      }}
+                    />
+                  </Document>
+                ) : null}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

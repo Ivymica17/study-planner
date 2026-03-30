@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import Modules from './pages/Modules';
+import ModulesWorkspace from './pages/ModulesWorkspace';
 import ModuleDetail from './pages/ModuleDetail';
 import Quiz from './pages/Quiz';
 import QuizHistory from './pages/QuizHistory';
@@ -28,7 +28,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
-            <Route path="modules" element={<Modules />} />
+            <Route path="modules" element={<ModulesWorkspace />} />
             <Route path="modules/:id" element={<ModuleDetail />} />
             <Route path="quiz/:id" element={<Quiz />} />
             <Route path="quiz-history/:moduleId" element={<QuizHistory />} />

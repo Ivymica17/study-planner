@@ -1,0 +1,21 @@
+
+> study-planner-server@1.0.0 start
+> node server.js
+
+Server running on port 5000
+MongoDB connected
+Generating flashcards for module: 69c8fcb9e8194e0effabd0b9 user: 69c13fd8a9c26046192d1324
+Module found: 11 keyConcepts: 8 text length: 15534
+Cleared existing flashcards
+Processing key concepts: 8
+After key concepts processing, flashcards count: 8
+Extracted terms: 10
+After term extraction, flashcards count: 18
+After sentence processing, flashcards count: 18
+Final flashcards count: 18
+Sample flashcard: {
+  front: 'Exam Concept: New Employees',
+  back: 'Expected answer: Task Analysis.',
+  difficulty: 'easy'
+}
+Created flashcards: 18

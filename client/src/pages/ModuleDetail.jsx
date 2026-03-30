@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import HandoutAnnotator from '../components/HandoutAnnotator';
 
 export default function ModuleDetail() {
   const { id } = useParams();
@@ -200,9 +199,17 @@ export default function ModuleDetail() {
             </button>
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Handout Viewer & Notes</h2>
-            <HandoutAnnotator moduleId={module._id} content={module.originalText || 'No content available'} />
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">Study Area Workspace</h2>
+            <p className="text-gray-600 mb-5">
+              Open this module in the redesigned Study Area to view the full PDF, highlight text, draw notes, and keep your progress saved.
+            </p>
+            <button
+              onClick={() => navigate(`/study-area?module=${module._id}`)}
+              className="bg-slate-900 text-white px-6 py-3 rounded-lg hover:bg-slate-800 transition font-semibold"
+            >
+              Open in Study Area
+            </button>
           </div>
         </div>
       </div>

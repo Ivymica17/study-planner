@@ -212,7 +212,8 @@ const buildExamQuestion = (sentence, difficulty, idx, pool) => {
     options,
     correctAnswer,
     difficulty,
-    type: 'mcq'
+    type: 'mcq',
+    explanation: `The best answer is supported by the module statement: ${correct}`
   };
 };
 
@@ -264,6 +265,47 @@ const generateMultipleChoiceQuestions = (text) => {
     .filter(Boolean);
 
   return [...easyQs, ...mediumQs, ...hardQs];
+};
+
+const buildStudyFlashcards = (text, keyConcepts = []) => {
+  const cards = [];
+  const cleaned = stripPdfNoise(text);
+  const sentences = sentenceParts(cleaned);
+
+  keyConcepts
+    .slice(0, 8)
+    .forEach((concept, index) => {
+      const [title, detail] = String(concept).split(/:\s+(.+)/);
+      cards.push({
+        front: title?.trim() || concept,
+        back: detail?.trim() || `Explain why ${concept} matters in the context of this module.`,
+        difficulty: index < 3 ? 'easy' : index < 6 ? 'medium' : 'hard'
+      });
+    });
+
+  sentences.slice(0, 10).forEach((sentence, index) => {
+    if (cards.length >= 12) return;
+    const topic = getTopicPhrase(sentence);
+    cards.push({
+      front: `What should you remember about ${topic}?`,
+      back: shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(sentence)), 180),
+      difficulty: index < 3 ? 'easy' : index < 6 ? 'medium' : 'hard'
+    });
+  });
+
+  return uniqueBy(cards, (card) => normalizeForCompare(`${card.front} ${card.back}`)).slice(0, 12);
+};
+
+const detectExtractionWarning = (cleanedText, pageCount = 0) => {
+  if (!cleanedText || cleanedText.length < 180) {
+    return 'Text extraction looks weak. Review the generated notes before studying.';
+  }
+
+  if (pageCount >= 3 && cleanedText.length / pageCount < 220) {
+    return 'Some pages may not have extracted cleanly. Review the PDF preview and summary for accuracy.';
+  }
+
+  return '';
 };
 
 // Generate case-based situational legal exam questions
@@ -608,7 +650,23 @@ const processWithAI = async (text) => {
       .filter((w, i, arr) => arr.indexOf(w) === i) // Remove duplicates
       .slice(0, 8);
     
-    return { summary, keyConcepts, quizQuestions, aiAvailable: false };
+    const conceptDetails = keyConcepts.map((concept) => {
+      const supportingSentence = sentenceParts(cleaned).find((sentence) =>
+        normalizeForCompare(sentence).includes(normalizeForCompare(concept))
+      );
+      const detail = supportingSentence
+        ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(supportingSentence)), 180)
+        : `Review how ${concept} is explained in the uploaded module.`;
+      return `${concept}: ${detail}`;
+    });
+
+    return {
+      summary,
+      keyConcepts: conceptDetails,
+      flashcards: buildStudyFlashcards(cleaned, conceptDetails),
+      quizQuestions,
+      aiAvailable: false
+    };
   }
   try {
     console.log('📚 Starting AI processing for text...');
@@ -658,7 +716,15 @@ const processWithAI = async (text) => {
       .map(line => line.replace(/^[\d\.\-\s]+/, '').trim())
       .filter(Boolean);
 
-    return { summary, keyConcepts, quizQuestions: quizData.questions || [], aiAvailable: true };
+    const conceptDetails = keyConcepts.map((concept) => `${concept}: Focus on how this idea is developed in the uploaded module.`);
+
+    return {
+      summary,
+      keyConcepts: conceptDetails,
+      flashcards: buildStudyFlashcards(cleaned, conceptDetails),
+      quizQuestions: quizData.questions || [],
+      aiAvailable: true
+    };
   } catch (err) {
     console.error('❌ AI Processing Error:', err.message);
     console.log('📚 Falling back to local quiz generation...');
@@ -685,7 +751,16 @@ const processWithAI = async (text) => {
       .filter((w, i, arr) => arr.indexOf(w) === i) // Remove duplicates
       .slice(0, 8);
     
-    return { summary, keyConcepts, quizQuestions, aiAvailable: false, error: err.message };
+    const conceptDetails = keyConcepts.map((concept) => `${concept}: Review this concept directly in the uploaded material.`);
+
+    return {
+      summary,
+      keyConcepts: conceptDetails,
+      flashcards: buildStudyFlashcards(cleaned, conceptDetails),
+      quizQuestions,
+      aiAvailable: false,
+      error: err.message
+    };
   }
 };
 
@@ -693,11 +768,21 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
   try {
     const { title } = req.body;
     let text = '';
+    let pdfData = '';
+    let fileType = '';
+    let fileSize = 0;
+    let pageCount = 0;
 
     if (req.file) {
-      if (req.file.mimetype === 'application/pdf') {
-        const pdfData = await pdfParse(req.file.buffer);
-        text = pdfData.text;
+      const isPdfUpload = req.file.mimetype === 'application/pdf' || /\.pdf$/i.test(req.file.originalname || '');
+      fileType = isPdfUpload ? 'application/pdf' : req.file.mimetype;
+      fileSize = req.file.size;
+
+      if (isPdfUpload) {
+        const parsedPdf = await pdfParse(req.file.buffer);
+        text = parsedPdf.text;
+        pageCount = parsedPdf.numpages || 0;
+        pdfData = req.file.buffer.toString('base64');
       } else {
         text = req.file.buffer.toString('utf-8');
       }
@@ -712,13 +797,20 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
     // Clean PDF noise early so everything downstream uses the important content.
     const cleanedText = stripPdfNoise(text);
     const aiResult = await processWithAI(cleanedText);
+    const extractionWarning = detectExtractionWarning(cleanedText, pageCount);
 
     const module = new Module({
       userId: req.user.id,
       title: title || 'Untitled Module',
       originalText: cleanedText,
+      pdfData,
+      fileType,
+      fileSize,
+      pageCount,
+      extractionWarning,
       summary: aiResult.summary,
       keyConcepts: aiResult.keyConcepts,
+      flashcards: aiResult.flashcards,
       quizQuestions: aiResult.quizQuestions,
       fileName: req.file?.originalname
     });
@@ -742,7 +834,9 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 
 router.get('/', auth, async (req, res) => {
   try {
-    const modules = await Module.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const modules = await Module.find({ userId: req.user.id })
+      .select('-pdfData')
+      .sort({ createdAt: -1 });
     res.json(modules);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -756,6 +850,27 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Module not found' });
     }
     res.json(module);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get('/:id/file', auth, async (req, res) => {
+  try {
+    const module = await Module.findOne({ _id: req.params.id, userId: req.user.id }).select('title fileName fileType pdfData');
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' });
+    }
+
+    if (module.fileType !== 'application/pdf' || !module.pdfData) {
+      return res.status(404).json({ message: 'PDF file not available for this module' });
+    }
+
+    const fileBuffer = Buffer.from(module.pdfData, 'base64');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.setHeader('Content-Disposition', `inline; filename="${module.fileName || `${module.title}.pdf`}"`);
+    res.send(fileBuffer);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -834,6 +949,7 @@ router.post('/:id/regenerate-quiz', auth, async (req, res) => {
     
     module.summary = aiResult.summary;
     module.keyConcepts = aiResult.keyConcepts;
+    module.flashcards = aiResult.flashcards;
     module.quizQuestions = aiResult.quizQuestions;
     module.usedQuestionIndices = []; // Reset used questions
     
