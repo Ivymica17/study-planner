@@ -460,6 +460,52 @@ export default function PdfStudyWorkspace({
                   </div>
                 )}
 
+                {!pdfError && pdfFileUrl && (
+                  <div className="sticky top-4 z-10 flex justify-center px-4 lg:px-8">
+                    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-2 py-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateWorkspaceState((prev) => ({
+                            ...prev,
+                            zoom: clamp((prev.zoom || 100) - 10, 60, 180),
+                          }))
+                        }
+                        disabled={workspaceState.zoom <= 60}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Zoom out"
+                        title="Zoom out"
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateWorkspaceState((prev) => ({ ...prev, zoom: 100 }))}
+                        className="min-w-[72px] rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                        aria-label="Reset zoom"
+                        title="Reset zoom"
+                      >
+                        {workspaceState.zoom}%
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateWorkspaceState((prev) => ({
+                            ...prev,
+                            zoom: clamp((prev.zoom || 100) + 10, 60, 180),
+                          }))
+                        }
+                        disabled={workspaceState.zoom >= 180}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Zoom in"
+                        title="Zoom in"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {pdfError ? (
                   <div className="flex h-full min-h-[420px] items-center justify-center p-8">
                     <div className="rounded-3xl border border-rose-200 bg-white px-6 py-5 text-sm text-rose-700 shadow-sm">
@@ -467,41 +513,43 @@ export default function PdfStudyWorkspace({
                     </div>
                   </div>
                 ) : pdfFileUrl ? (
-                  <Document
-                    file={pdfFileUrl}
-                    onLoadSuccess={({ numPages: pages }) => {
-                      setNumPages(pages);
-                      setDocumentLoading(false);
-                    }}
-                    onLoadError={(error) => {
-                      console.error('Failed to load PDF:', error);
-                      setPdfError('Failed to load PDF file.');
-                      setDocumentLoading(false);
-                      setPageLoading(false);
-                    }}
-                    loading={null}
-                    className="min-h-full"
-                  >
-                    <PdfPageStage
-                      pageNumber={currentPage}
-                      zoom={workspaceState.zoom}
-                      activeTool={activeTool}
-                      highlights={currentHighlights}
-                      drawingState={currentDrawingState}
-                      brushColor={brushColor}
-                      brushSize={brushSize}
-                      highlightColor={highlightColor}
-                      onSelectionChange={setPendingSelection}
-                      onAddHighlight={handleAddHighlight}
-                      onAddStroke={handleAddStroke}
-                      onRemoveHighlight={handleRemoveHighlight}
-                      onPageRenderSuccess={() => setPageLoading(false)}
-                      onPageRenderError={(error) => {
-                        console.error('Failed to render page:', error);
+                  <div className="flex min-h-full justify-center px-2 sm:px-4">
+                    <Document
+                      file={pdfFileUrl}
+                      onLoadSuccess={({ numPages: pages }) => {
+                        setNumPages(pages);
+                        setDocumentLoading(false);
+                      }}
+                      onLoadError={(error) => {
+                        console.error('Failed to load PDF:', error);
+                        setPdfError('Failed to load PDF file.');
+                        setDocumentLoading(false);
                         setPageLoading(false);
                       }}
-                    />
-                  </Document>
+                      loading={null}
+                      className="min-h-full w-full"
+                    >
+                      <PdfPageStage
+                        pageNumber={currentPage}
+                        zoom={workspaceState.zoom}
+                        activeTool={activeTool}
+                        highlights={currentHighlights}
+                        drawingState={currentDrawingState}
+                        brushColor={brushColor}
+                        brushSize={brushSize}
+                        highlightColor={highlightColor}
+                        onSelectionChange={setPendingSelection}
+                        onAddHighlight={handleAddHighlight}
+                        onAddStroke={handleAddStroke}
+                        onRemoveHighlight={handleRemoveHighlight}
+                        onPageRenderSuccess={() => setPageLoading(false)}
+                        onPageRenderError={(error) => {
+                          console.error('Failed to render page:', error);
+                          setPageLoading(false);
+                        }}
+                      />
+                    </Document>
+                  </div>
                 ) : null}
               </div>
             </>

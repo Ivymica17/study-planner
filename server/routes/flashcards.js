@@ -2,14 +2,144 @@ import express from 'express';
 import Flashcard from '../models/Flashcard.js';
 import Module from '../models/Module.js';
 import { auth } from '../middleware/auth.js';
+import { mapDifficultyLabel, normalizeGenerationOptions } from '../utils/generationProfile.js';
 
 const router = express.Router();
+
+const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+const completeSentence = (value) => {
+  const text = normalizeText(value);
+  if (!text) return '';
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+};
+
+const shorten = (value, max = 160) => {
+  const text = normalizeText(value);
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim()}.`;
+};
+
+const normalizeKey = (value) => normalizeText(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+
+const uniqueCards = (cards) => {
+  const seen = new Set();
+  return cards.filter((card) => {
+    const key = normalizeKey(`${card.front} ${card.back}`);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const RECALL_PATTERNS = [
+  /\bdefine\b/i,
+  /\bwhat is\b/i,
+  /\bin your own words\b/i,
+  /\bidentify\b/i,
+  /\bstate the definition\b/i,
+];
+
+const isRecallStyle = (text) => RECALL_PATTERNS.some((pattern) => pattern.test(String(text || '')));
+
+const hasSourceMirror = (candidate, sourceText) => {
+  const cleanCandidate = normalizeKey(candidate);
+  const cleanSource = normalizeKey(sourceText);
+  const words = cleanCandidate.split(' ').filter((word) => word.length > 3);
+  if (words.length < 8) return false;
+
+  for (let index = 0; index <= words.length - 8; index += 1) {
+    const fragment = words.slice(index, index + 8).join(' ');
+    if (fragment.length > 35 && cleanSource.includes(fragment)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const conceptTitle = (concept) => {
+  const raw = normalizeText(concept);
+  if (!raw) return '';
+  const parts = raw.split(/:\s+(.+)/);
+  return normalizeText(parts[0]).replace(/^[-*•\d.)\s]+/, '');
+};
+
+const conceptDetail = (concept) => {
+  const raw = normalizeText(concept);
+  const parts = raw.split(/:\s+(.+)/);
+  return normalizeText(parts[1] || parts[0]);
+};
+
+const moduleSentenceParts = (text) =>
+  String(text || '')
+    .split(/[.!?]+/)
+    .map((part) => normalizeText(part))
+    .filter((part) => part.length >= 35 && part.length <= 220);
+
+const extractTopicWords = (text) =>
+  normalizeText(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(' ')
+    .filter((word) => word.length > 3);
+
+const buildAppliedFront = (topic, detail, difficulty = 'medium', mode = 'Board') => {
+  const label = normalizeText(topic).toLowerCase();
+
+  if (mode === 'Class Prep') {
+    const bank = [
+      `What is ${label} according to the module?`,
+      `What does the module say about ${label}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'Quiz') {
+    const bank = [
+      `What is the main idea of ${label} in the module?`,
+      `According to the module, what best explains ${label}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'College') {
+    const bank = [
+      `A college-level problem involves ${label}. Which module-based idea should guide the response?`,
+      `A student must apply ${label} to a practical academic situation. What point matters most?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  const easy = [
+    `A student encounters ${label} in a routine review item. Which idea from the module should guide the answer?`,
+    `During a simple class scenario involving ${label}, what point from the module matters most?`,
+  ];
+
+  const medium = [
+    `A short case turns on ${label}. Which response best applies the module's explanation?`,
+    `When ${label} appears in a practical problem, what should the student focus on first?`,
+  ];
+
+  const hard = [
+    `A board-style situation involves ${label}. Which judgment is most consistent with the module?`,
+    `In a more complex case involving ${label}, what application is best supported by the module?`,
+  ];
+
+  const bank = difficulty === 'easy' ? easy : difficulty === 'hard' ? hard : medium;
+  return bank[Math.floor(Math.random() * bank.length)];
+};
+
+const buildModuleBasedBack = (detail) => completeSentence(shorten(detail, 170));
 
 // Generate flashcards from module content
 router.post('/:moduleId/generate', auth, async (req, res) => {
   try {
     const { moduleId } = req.params;
     const userId = req.user?.id || req.userId;
+    const profile = normalizeGenerationOptions(req.body || {});
 
     console.log('Generating flashcards for module:', moduleId, 'user:', userId);
 
@@ -48,65 +178,45 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
     
     console.log('Processing key concepts:', keyConcepts.length);
     
-    // Helper: Extract term definitions from text
-    const extractTerms = (text) => {
-      const terms = [];
-      // Look for patterns like "Term: definition" or "Term - definition"
-      const patterns = [
-        /([A-Za-z\s]+):\s*([^.!?]*[.!?])/g,
-        /([A-Za-z\s]+)\s*-\s*([^.!?]*[.!?])/g
-      ];
-      
-      patterns.forEach(pattern => {
-        let match;
-        while ((match = pattern.exec(text)) !== null) {
-          const term = match[1].trim();
-          const definition = match[2].trim();
-          if (term.length > 3 && term.length < 50 && definition.length > 10 && definition.length < 300) {
-            terms.push({ front: term, back: definition });
-          }
-        }
-      });
-      return terms;
-    };
+    const moduleSentences = moduleSentenceParts(text);
 
-    // Generate exam-style flashcards from key concepts
+    // Generate concise, applied flashcards from key concepts only
     keyConcepts.forEach((concept, idx) => {
-      if (concept) {
+      const title = conceptTitle(concept);
+      const detail = conceptDetail(concept);
+      if (title) {
+        const difficulty = mapDifficultyLabel(profile.difficulty, idx, 12);
+        const supportingSentence = moduleSentences.find((sentence) => {
+          const sentenceWords = extractTopicWords(sentence);
+          return extractTopicWords(title).some((word) => sentenceWords.includes(word));
+        });
+        const moduleBack = supportingSentence || detail;
+        const front = buildAppliedFront(title, moduleBack, difficulty, profile.mode);
+        const back = buildModuleBasedBack(moduleBack);
+        if ((profile.mode !== 'Class Prep' && isRecallStyle(front)) || hasSourceMirror(front, text)) return;
         flashcards.push({
-          front: `Exam Recall: Define "${concept}" in your own words.`,
-          back: `${concept} is a core concept from this module. State its definition, why it matters, and one practical implication from your handout.`,
-          difficulty: idx % 3 === 0 ? 'easy' : idx % 3 === 1 ? 'medium' : 'hard'
+          front,
+          back,
+          difficulty
         });
       }
     });
 
     console.log('After key concepts processing, flashcards count:', flashcards.length);
 
-    // Extract and add term definitions
-    const extractedTerms = extractTerms(text).slice(0, 10);
-    console.log('Extracted terms:', extractedTerms.length);
-    extractedTerms.forEach((term, idx) => {
-      flashcards.push({
-        front: `Exam Concept: ${term.front}`,
-        back: `Expected answer: ${term.back}`,
-        difficulty: idx % 3 === 0 ? 'easy' : idx % 3 === 1 ? 'medium' : 'hard'
-      });
-    });
-
-    console.log('After term extraction, flashcards count:', flashcards.length);
-
-    // If not enough flashcards, generate from meaningful sentences (exam/application style)
+    // If not enough cards, build more from module sentences tied to module concepts
     if (flashcards.length < 10) {
-      const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20 && s.trim().length < 200);
-      console.log('Found sentences:', sentences.length);
-      for (let i = 0; i < Math.min(5, sentences.length); i++) {
-        const sentence = sentences[i].trim();
+      console.log('Found sentences:', moduleSentences.length);
+      for (let i = 0; i < Math.min(8, moduleSentences.length); i++) {
+        const sentence = moduleSentences[i];
         if (sentence) {
+          const difficulty = mapDifficultyLabel(profile.difficulty, i, 12);
+          const prompt = buildAppliedFront(shorten(sentence, 48), sentence, difficulty, profile.mode);
+          if ((profile.mode !== 'Class Prep' && isRecallStyle(prompt)) || hasSourceMirror(prompt, text)) continue;
           flashcards.push({
-            front: `Application: In an exam setting, explain this idea -> ${sentence.substring(0, 80)}...`,
-            back: `Model answer: ${sentence}`,
-            difficulty: i % 3 === 0 ? 'easy' : i % 3 === 1 ? 'medium' : 'hard'
+            front: prompt,
+            back: buildModuleBasedBack(sentence),
+            difficulty
           });
         }
       }
@@ -114,46 +224,47 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
 
     console.log('After sentence processing, flashcards count:', flashcards.length);
 
+    const cleanedFlashcards = uniqueCards(flashcards).slice(0, 20);
+
     // Shuffle flashcards
-    for (let i = flashcards.length - 1; i > 0; i--) {
+    for (let i = cleanedFlashcards.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+      [cleanedFlashcards[i], cleanedFlashcards[j]] = [cleanedFlashcards[j], cleanedFlashcards[i]];
     }
 
     // If we still have no flashcards, add a fallback card from module title/summary
-    if (flashcards.length === 0) {
+    if (cleanedFlashcards.length === 0) {
       console.log('No flashcards generated, using fallback');
-      let fallbackFront = 'What is this module about?';
-      let fallbackBack = 'This module contains study material. Please review the content to understand the key concepts.';
+      let fallbackFront = 'A practical item asks for the module\'s main takeaway. What should guide the answer?';
+      let fallbackBack = 'Use the central idea emphasized in the uploaded module and apply it to the situation presented.';
 
       if (module.title) {
-        fallbackFront = `What is the main topic of ${module.title}?`;
+        fallbackFront = `A student must apply the main lesson from ${module.title}. What idea should guide the response?`;
         fallbackBack = module.summary || `Review the ${module.title} module content for detailed understanding.`;
       } else if (module.summary) {
-        fallbackFront = 'What is the main idea of this module?';
         fallbackBack = module.summary;
       }
 
-      flashcards.push({ front: fallbackFront, back: fallbackBack, difficulty: 'easy' });
+      cleanedFlashcards.push({ front: fallbackFront, back: fallbackBack, difficulty: 'easy' });
     }
 
     // Ensure we have at least one flashcard
-    if (flashcards.length === 0) {
+    if (cleanedFlashcards.length === 0) {
       console.log('Still no flashcards, using ultimate fallback');
-      flashcards.push({
+      cleanedFlashcards.push({
         front: 'What is this module about?',
         back: 'This module contains study material. Please review the content to understand the key concepts.',
         difficulty: 'easy'
       });
     }
 
-    console.log('Final flashcards count:', flashcards.length);
-    console.log('Sample flashcard:', flashcards[0]);
+    console.log('Final flashcards count:', cleanedFlashcards.length);
+    console.log('Sample flashcard:', cleanedFlashcards[0]);
 
     // Create flashcard documents
     try {
       const created = await Flashcard.insertMany(
-        flashcards.slice(0, 20).map(fc => ({ userId, moduleId, ...fc }))
+        cleanedFlashcards.map(fc => ({ userId, moduleId, ...fc }))
       );
       console.log('Created flashcards:', created.length);
       res.json({ message: 'Flashcards generated', count: created.length, flashcards: created });

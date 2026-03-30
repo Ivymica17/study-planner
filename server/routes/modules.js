@@ -3,19 +3,39 @@ import multer from 'multer';
 import pdfParse from 'pdf-parse';
 import OpenAI from 'openai';
 import Module from '../models/Module.js';
+import Flashcard from '../models/Flashcard.js';
 import QuizAttempt from '../models/QuizAttempt.js';
 import { auth } from '../middleware/auth.js';
+import {
+  buildQuizPrompt,
+  mapDifficultyLabel,
+  normalizeGenerationOptions,
+} from '../utils/generationProfile.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 let openai = null;
-if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')) {
+if (process.env.OPENAI_API_KEY?.trim()) {
   openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
 const SUMMARY_PROMPT = 'Summarize this study material into bullet points. Highlight key concepts clearly.';
-const QUIZ_PROMPT = 'Generate board-exam style MCQs from the core concepts only (ignore headers, footers, page labels, metadata). Use one-best-answer format with realistic vignettes, high-quality distractors, and no giveaway wording. Include a balanced mix of easy, medium, and hard cognitive levels. Return JSON only in this structure: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":0}]}';
+
+const formatOpenAIError = (err) => {
+  const status = err?.status ?? err?.code;
+  const message = String(err?.message || '').trim();
+
+  if (status === 429 || /quota|billing details|rate limit/i.test(message)) {
+    return 'OpenAI is currently unavailable for this app because the API quota or billing limit has been reached. Local generation was used instead. Check your OpenAI plan and billing details to restore AI-generated summaries and quizzes.';
+  }
+
+  if (status === 401 || /incorrect api key|invalid api key|authentication/i.test(message)) {
+    return 'OpenAI is currently unavailable for this app because the API key appears to be invalid. Local generation was used instead. Update OPENAI_API_KEY to restore AI-generated summaries and quizzes.';
+  }
+
+  return 'OpenAI generation is temporarily unavailable, so local generation was used instead.';
+};
 
 // Strip noisy PDF headers/footers and repeated lines.
 const stripPdfNoise = (raw) => {
@@ -111,6 +131,16 @@ const shortenAtWordBoundary = (text, max = 140) => {
   return `${safe}.`;
 };
 
+const uniqueByNormalizedText = (items, selector) => {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = normalizeForCompare(selector(item));
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const uniqueBy = (arr, selector) => {
   const seen = new Set();
   return arr.filter((item) => {
@@ -119,6 +149,194 @@ const uniqueBy = (arr, selector) => {
     seen.add(key);
     return true;
   });
+};
+
+const CONTENT_STOPWORDS = new Set([
+  ...STOPWORDS,
+  'article', 'articles', 'section', 'sections', 'chapter', 'chapters', 'lesson', 'lessons',
+  'module', 'modules', 'unit', 'units', 'page', 'pages', 'student', 'students', 'handout',
+  'handouts', 'reviewer', 'reviewers', 'edu', 'sti', 'pdf', 'property', 'copyright',
+  'rights', 'reserved', 'confidential'
+]);
+
+const normalizeConceptKey = (text) =>
+  normalizeForCompare(text)
+    .replace(/\b(article|section|chapter|lesson|module|unit|page|pages)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const isTooSimilar = (left, right) => {
+  const a = normalizeConceptKey(left);
+  const b = normalizeConceptKey(right);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.includes(b) || b.includes(a)) return true;
+
+  const aWords = a.split(' ').filter(Boolean);
+  const bWords = b.split(' ').filter(Boolean);
+  const shared = aWords.filter((word) => bWords.includes(word));
+  const overlap = shared.length / Math.max(Math.min(aWords.length, bWords.length), 1);
+  return overlap >= 0.75;
+};
+
+const dedupeSimilarStrings = (items = [], limit = items.length) => {
+  const kept = [];
+
+  items.forEach((item) => {
+    const value = String(item || '').trim();
+    if (!value) return;
+    if (kept.some((existing) => isTooSimilar(existing, value))) return;
+    kept.push(value);
+  });
+
+  return kept.slice(0, limit);
+};
+
+const conceptTitleFromLine = (line) => {
+  const cleaned = cleanSentenceText(line)
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[:;,.].*$/, '')
+    .replace(/\b(article|section|chapter|lesson|module|unit)\s+\d+[a-z-]*\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) return '';
+
+  const words = cleaned.split(' ').filter((word) => {
+    const lower = word.toLowerCase();
+    return word.length > 2 && !CONTENT_STOPWORDS.has(lower) && /^[a-zA-Z-]+$/.test(word);
+  });
+
+  const phrase = words.slice(0, 5).join(' ').trim();
+  if (phrase.split(' ').length < 2) return '';
+
+  return phrase
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const extractCandidateConcepts = (text) => {
+  const lines = stripPdfNoise(text)
+    .split('\n')
+    .map((line) => cleanSentenceText(line))
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  const sentenceCandidates = sentenceParts(text)
+    .map((sentence) => conceptTitleFromLine(sentence))
+    .filter(Boolean);
+
+  const headingCandidates = lines
+    .filter((line) => {
+      const words = line.split(' ');
+      if (words.length < 2 || words.length > 8) return false;
+      if (line.length > 70) return false;
+      if (/[.:]/.test(line)) return false;
+      return /[A-Z]/.test(line);
+    })
+    .map((line) => conceptTitleFromLine(line))
+    .filter(Boolean);
+
+  return dedupeSimilarStrings([...headingCandidates, ...sentenceCandidates], 8);
+};
+
+const buildConceptDetails = (text, rawConcepts = []) => {
+  const cleaned = stripPdfNoise(text);
+  const sentences = sentenceParts(cleaned);
+
+  const details = rawConcepts
+    .map((concept) => {
+      const supportingSentence = sentences.find((sentence) =>
+        normalizeForCompare(sentence).includes(normalizeForCompare(concept))
+      );
+
+      const detail = supportingSentence
+        ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(supportingSentence)), 180)
+        : `Focus on how ${concept.toLowerCase()} is applied in the uploaded module.`;
+
+      return `${concept}: ${detail}`;
+    });
+
+  return dedupeSimilarStrings(details, 8);
+};
+
+const summarizeLocally = (text) => {
+  const cleaned = stripPdfNoise(text)
+    .replace(/^.*(Â©|copyright|all rights reserved|disclaimer|confidential|page \d+).*/gim, '')
+    .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '')
+    .trim();
+
+  const summarySentences = dedupeSimilarStrings(
+    cleaned
+      .split(/[.!?]/)
+      .map((sentence) => cleanSentenceText(sentence))
+      .filter((sentence) => sentence.length > 40 && !/^(chapter|section|unit|page|header)/i.test(sentence)),
+    4
+  );
+
+  if (summarySentences.length === 0) {
+    return 'Summary is being prepared from the uploaded module.';
+  }
+
+  return `${summarySentences.join('. ')}.`;
+};
+
+const RECALL_PATTERNS = [
+  /\bdefine\b/i,
+  /\bwhat is\b/i,
+  /\bin your own words\b/i,
+  /\bidentify\b/i,
+  /\bwhich term\b/i,
+  /\bstate the definition\b/i,
+];
+
+const isLikelyRecallPrompt = (text) => RECALL_PATTERNS.some((pattern) => pattern.test(String(text || '')));
+
+const hasLongSourceFragment = (candidate, sourceText) => {
+  const normalizedCandidate = normalizeForCompare(candidate);
+  const normalizedSource = normalizeForCompare(sourceText);
+  const words = normalizedCandidate.split(' ').filter((word) => word.length > 3);
+  if (words.length < 8) return false;
+
+  for (let index = 0; index <= words.length - 8; index += 1) {
+    const fragment = words.slice(index, index + 8).join(' ');
+    if (fragment.length > 35 && normalizedSource.includes(fragment)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const hasWeakOptions = (options = []) => {
+  if (!Array.isArray(options) || options.length !== 4) return true;
+  const lengths = options.map((option) => String(option || '').replace(/\s+/g, ' ').trim().length);
+  const min = Math.min(...lengths);
+  const max = Math.max(...lengths);
+  const unique = new Set(options.map((option) => normalizeForCompare(option)));
+  return min < 28 || max - min > 90 || unique.size !== 4;
+};
+
+const looksScenarioBased = (text) =>
+  /\b(scenario|case|manager|student|supervisor|employee|client|team|decision|situation|must decide|faces|during|after|while|when)\b/i.test(String(text || ''));
+
+const isQualityMcq = (question, options, sourceText, mode = 'Board') => {
+  if (!question || !Array.isArray(options) || options.length !== 4) return false;
+  if (hasWeakOptions(options)) return false;
+  if (hasLongSourceFragment(question, sourceText)) return false;
+  if (options.some((option) => hasLongSourceFragment(option, sourceText))) return false;
+
+  if (mode === 'Class Prep') {
+    return true;
+  }
+
+  if (mode === 'Quiz') {
+    return !isLikelyRecallPrompt(question) || looksScenarioBased(question);
+  }
+
+  if (!looksScenarioBased(question)) return false;
+  return true;
 };
 
 const extractKeywords = (sentence) =>
@@ -130,6 +348,235 @@ const getTopicPhrase = (sentence) => {
   const words = extractKeywords(sentence);
   if (words.length === 0) return 'this concept';
   return words.slice(0, 3).join(' ');
+};
+
+const titleCase = (value) =>
+  String(value || '')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
+const buildQuestionStem = (title, detail, difficulty = 'medium', mode = 'Quiz') => {
+  const label = cleanSentenceText(title || getTopicPhrase(detail) || 'this concept');
+
+  if (mode === 'Class Prep') {
+    const bank = [
+      `What best describes ${label.toLowerCase()} according to the module?`,
+      `According to the module, what is ${label.toLowerCase()}?`,
+      `Which statement about ${label.toLowerCase()} is correct?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'Quiz') {
+    const bank = [
+      `Which statement best describes ${label.toLowerCase()} in the module?`,
+      `According to the module, what best explains ${label.toLowerCase()}?`,
+      `Which statement is most accurate about ${label.toLowerCase()}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'College') {
+    const bank = [
+      `Which statement best explains ${label.toLowerCase()} based on the module?`,
+      `Which interpretation of ${label.toLowerCase()} is most consistent with the module?`,
+      `Which statement best applies the module's discussion of ${label.toLowerCase()}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  const bank = difficulty === 'hard'
+    ? [
+        `Which statement most accurately applies the module's discussion of ${label.toLowerCase()}?`,
+        `Which option best reflects the module's reasoning about ${label.toLowerCase()}?`,
+      ]
+    : [
+        `Which statement best describes ${label.toLowerCase()} in the module?`,
+        `According to the module, what is most accurate about ${label.toLowerCase()}?`,
+      ];
+
+  return bank[Math.floor(Math.random() * bank.length)];
+};
+
+const buildDirectDistractor = (detail, title, style = 'related') => {
+  const concept = cleanSentenceText(title || getTopicPhrase(detail) || 'the concept').toLowerCase();
+  const clause = getKeyClause(detail, 10) || concept;
+
+  if (style === 'opposite') {
+    return `${titleCase(concept)} is unrelated to ${clause.toLowerCase()} and does not affect performance improvement in the module's discussion.`;
+  }
+
+  if (style === 'swap') {
+    return `${titleCase(concept)} is presented as a different process, method, or stage than the one actually described in the module.`;
+  }
+
+  return `${titleCase(concept)} is described too broadly and ignores the specific purpose or condition emphasized in the module.`;
+};
+
+const buildDirectQuestion = (title, detail, distractorPool = [], difficulty = 'medium', mode = 'Quiz') => {
+  const correct = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(detail)), 150);
+  const rawDistractors = distractorPool
+    .map((item) => shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(item.detail || item)), 150))
+    .filter((option) => normalizeForCompare(option) !== normalizeForCompare(correct));
+
+  const distractors = uniqueBy(
+    [
+      ...rawDistractors.slice(0, 3),
+      buildDirectDistractor(detail, title, 'related'),
+      buildDirectDistractor(detail, title, 'swap'),
+      buildDirectDistractor(detail, title, 'opposite'),
+    ],
+    (option) => normalizeForCompare(option),
+  ).filter((option) => normalizeForCompare(option) !== normalizeForCompare(correct)).slice(0, 3);
+
+  if (distractors.length < 3) return null;
+
+  const { options, correctAnswer } = shuffleOptions([correct, ...distractors], 0);
+  const question = buildQuestionStem(title, detail, difficulty, mode);
+
+  return {
+    question,
+    options,
+    correctAnswer,
+    difficulty,
+    type: 'mcq',
+    explanation: `The correct answer matches how the module explains ${cleanSentenceText(title || getTopicPhrase(detail))}.`
+  };
+};
+
+const sentenceToScenario = (sentence, topic, difficulty = 'medium', mode = 'Board') => {
+  const clause = getKeyClause(sentence, difficulty === 'hard' ? 12 : 9) || topic;
+  const topicLabel = topic || 'the issue';
+
+  if (mode === 'Class Prep') {
+    const bank = [
+      `A quick class-prep item mentions ${topicLabel}. Which idea should come to mind first?`,
+      `A student prepares for class and sees ${topicLabel}. Which response best fits the lesson?`,
+      `A short concept check involves ${topicLabel}. Which answer is most accurate?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'Quiz') {
+    const bank = [
+      `A quiz item focuses on ${topicLabel}. Which response is best supported by the module?`,
+      `A student must answer a short problem about ${topicLabel}. Which choice is strongest?`,
+      `Which response best applies the module's discussion of ${topicLabel}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'College') {
+    const bank = [
+      `A student must apply ${topicLabel} to an academic problem. Which response best fits the module?`,
+      `In a college-level application item involving ${topicLabel}, which answer is most defensible?`,
+      `A practical academic case turns on ${topicLabel}. Which choice shows the best reasoning?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  const easyScenarios = [
+    `A student is reviewing ${topicLabel} before a major test. Which response best fits the lesson?`,
+    `During recitation, a learner is asked to apply ${topicLabel}. Which answer is most accurate?`,
+    `A class discussion turns to ${topicLabel}. Which choice best reflects the module?`,
+  ];
+
+  const mediumScenarios = [
+    `A reviewer item presents a situation involving ${topicLabel}. Which response shows the best interpretation?`,
+    `A student must choose the strongest application of ${topicLabel}. Which option is most defensible?`,
+    `In a short case involving ${topicLabel}, which answer best follows the material's reasoning?`,
+  ];
+
+  const hardScenarios = [
+    `In a realistic case where ${clause.toLowerCase()} becomes important, which action or judgment is best supported by the module?`,
+    `A decision-maker faces a scenario involving ${topicLabel}. Which response applies the lesson most soundly?`,
+    `When the key issue is ${topicLabel}, which option shows the strongest applied reasoning?`,
+  ];
+
+  const bank = difficulty === 'easy' ? easyScenarios : difficulty === 'hard' ? hardScenarios : mediumScenarios;
+  return bank[Math.floor(Math.random() * bank.length)];
+};
+
+const buildFlashcardFront = (topic, difficulty = 'medium', mode = 'Board') => {
+  const label = String(topic || 'the topic').toLowerCase();
+
+  if (mode === 'Class Prep') {
+    const bank = [
+      `What is ${label} according to the module?`,
+      `What does the module say about ${label}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'Quiz') {
+    const bank = [
+      `What is the main idea of ${label} in the module?`,
+      `According to the module, what best explains ${label}?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'College') {
+    const bank = [
+      `A college-level problem involves ${label}. Which module-based idea should guide the response?`,
+      `A student must apply ${label} to a practical academic situation. What point matters most?`,
+    ];
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  const easy = [
+    `A student encounters ${label} in a routine review problem. Which idea from the module should guide the answer?`,
+    `During a simple classroom scenario involving ${label}, what point matters most?`,
+  ];
+  const medium = [
+    `A short practical case involves ${label}. Which module-based idea should be applied first?`,
+    `When ${label} appears in an applied item, what should the student focus on?`,
+  ];
+  const hard = [
+    `A board-style scenario turns on ${label}. Which judgment is most supported by the module?`,
+    `In a more complex case involving ${label}, what application best fits the module?`,
+  ];
+
+  const bank = difficulty === 'easy' ? easy : difficulty === 'hard' ? hard : medium;
+  return bank[Math.floor(Math.random() * bank.length)];
+};
+
+const getKeyClause = (sentence, maxWords = 10) => {
+  const cleaned = cleanSentenceText(sentence)
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\b(according to|in conclusion|therefore|however|for example|such as)\b/gi, '')
+    .trim();
+  const clauses = cleaned
+    .split(/[,:;()-]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const source = clauses.find((part) => part.split(/\s+/).length >= 4) || cleaned;
+  return source
+    .split(/\s+/)
+    .slice(0, maxWords)
+    .join(' ')
+    .trim();
+};
+
+const makeAppliedOption = (sentence, style = 'best') => {
+  const clause = getKeyClause(sentence);
+  if (!clause) return optionFromSentence(sentence);
+
+  if (style === 'best') {
+    return `Prioritize the response that accounts for ${clause.charAt(0).toLowerCase()}${clause.slice(1)} before making the decision.`;
+  }
+
+  if (style === 'misread') {
+    return `Assume ${clause.toLowerCase()} always controls the outcome, even when the surrounding facts do not support that conclusion.`;
+  }
+
+  if (style === 'overreach') {
+    return `Apply ${clause.toLowerCase()} too broadly and ignore the limits or conditions that the lesson implies.`;
+  }
+
+  return `Base the answer on a related but different idea, treating ${clause.toLowerCase()} as if it meant something simpler than the module suggests.`;
 };
 
 const optionFromSentence = (sentence) => {
@@ -177,35 +624,25 @@ const shuffleOptions = (options, correctIndex = 0) => {
   };
 };
 
-const buildExamQuestion = (sentence, difficulty, idx, pool) => {
-  const correct = optionFromSentence(sentence);
+const buildExamQuestion = (sentence, difficulty, idx, pool, profile) => {
+  const correct = makeAppliedOption(sentence, 'best');
   const distractorsRaw = pickDistractors(sentence, pool, 3);
-  if (distractorsRaw.length < 3) return null;
-  const distractors = distractorsRaw.map(optionFromSentence);
+  const generatedDistractors = [
+    makeAppliedOption(distractorsRaw[0] || sentence, 'misread'),
+    makeAppliedOption(distractorsRaw[1] || sentence, 'overreach'),
+    makeAppliedOption(distractorsRaw[2] || sentence, 'confuse'),
+  ];
+  const distractors = uniqueBy(generatedDistractors, (option) => normalizeForCompare(option))
+    .filter((option) => normalizeForCompare(option) !== normalizeForCompare(correct));
+  if (distractors.length < 3) {
+    return null;
+  }
   const { options, correctAnswer } = shuffleOptions([correct, ...distractors], 0);
   const topic = getTopicPhrase(sentence);
-
-  const easyStems = [
-    `According to the module, which statement is correct about ${topic}?`,
-    `Which statement best matches the module's explanation of ${topic}?`,
-    `Which option is explicitly supported by the module regarding ${topic}?`
-  ];
-  const mediumStems = [
-    `Which inference is most consistent with the module's discussion of ${topic}?`,
-    `Based on the module, which interpretation of ${topic} is strongest?`,
-    `Which conclusion about ${topic} is best supported by the text?`
-  ];
-  const hardStems = [
-    `A trainee must decide how to apply ${topic} in a real situation. Which option is the single best answer based on the module?`,
-    `When applying ${topic} to a practical case, which option is most defensible using the module content?`,
-    `Which choice shows the strongest applied judgment on ${topic} based on the module evidence?`
-  ];
-
-  const stem = difficulty === 'easy'
-    ? easyStems[idx % easyStems.length]
-    : difficulty === 'medium'
-      ? mediumStems[idx % mediumStems.length]
-      : hardStems[idx % hardStems.length];
+  const stem = sentenceToScenario(sentence, topic, difficulty, profile.mode);
+  if (!isQualityMcq(stem, options, pool.join(' '), profile.mode)) {
+    return null;
+  }
 
   return {
     question: stem,
@@ -213,12 +650,13 @@ const buildExamQuestion = (sentence, difficulty, idx, pool) => {
     correctAnswer,
     difficulty,
     type: 'mcq',
-    explanation: `The best answer is supported by the module statement: ${correct}`
+    explanation: `The correct answer best matches the module's intended meaning about ${topic}.`
   };
 };
 
 // Generate difficulty-specific, exam-style questions
-const generateMultipleChoiceQuestions = (text) => {
+const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
+  const profile = normalizeGenerationOptions(generationOptions);
   const cleanText = stripPdfNoise(text)
     .replace(/^[^\n]*(?:Property of|STI|student|confidential|©).*$/gim, '')
     .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '')
@@ -231,6 +669,35 @@ const generateMultipleChoiceQuestions = (text) => {
 
   const sentences = uniqueBy(sentenceParts(cleanText), (s) => s.toLowerCase());
   if (sentences.length === 0) return [];
+
+  const conceptDetails = buildConceptDetails(cleanText, extractCandidateConcepts(cleanText))
+    .map((entry) => {
+      const [title, detail] = String(entry).split(/:\s+(.+)/);
+      return {
+        title: cleanSentenceText(title),
+        detail: cleanSentenceText(detail || title),
+      };
+    })
+    .filter((entry) => entry.title && entry.detail);
+
+  if (profile.mode === 'Class Prep' || profile.mode === 'Quiz') {
+    const directSource = conceptDetails.length > 0
+      ? conceptDetails
+      : sentences.slice(0, 12).map((sentence) => ({
+          title: titleCase(getTopicPhrase(sentence)),
+          detail: sentence,
+        }));
+
+    const directQuestions = directSource
+      .map((entry, index) => {
+        const pool = directSource.filter((_, poolIndex) => poolIndex !== index);
+        const difficulty = mapDifficultyLabel(profile.difficulty, index, Math.max(directSource.length, 1));
+        return buildDirectQuestion(entry.title, entry.detail, pool, difficulty, profile.mode);
+      })
+      .filter(Boolean);
+
+    return uniqueBy(directQuestions, (question) => normalizeForCompare(question.question)).slice(0, 12);
+  }
 
   const easyPool = [];
   const mediumPool = [];
@@ -251,23 +718,28 @@ const generateMultipleChoiceQuestions = (text) => {
   fill(mediumPool, 8);
   fill(hardPool, 8);
 
-  const easyQs = uniqueBy(easyPool, (s) => s.toLowerCase())
-    .slice(0, 8)
-    .map((s, i) => buildExamQuestion(s, 'easy', i, sentences))
-    .filter(Boolean);
-  const mediumQs = uniqueBy(mediumPool, (s) => s.toLowerCase())
-    .slice(0, 8)
-    .map((s, i) => buildExamQuestion(s, 'medium', i, sentences))
-    .filter(Boolean);
-  const hardQs = uniqueBy(hardPool, (s) => s.toLowerCase())
-    .slice(0, 8)
-    .map((s, i) => buildExamQuestion(s, 'hard', i, sentences))
-    .filter(Boolean);
+  const targets = profile.difficulty === 'Mixed'
+    ? [
+        { bucket: uniqueBy(easyPool, (s) => s.toLowerCase()).slice(0, 8), difficulty: 'easy' },
+        { bucket: uniqueBy(mediumPool, (s) => s.toLowerCase()).slice(0, 8), difficulty: 'medium' },
+        { bucket: uniqueBy(hardPool, (s) => s.toLowerCase()).slice(0, 8), difficulty: 'hard' },
+      ]
+    : [
+        {
+          bucket: uniqueBy(sentences, (s) => s.toLowerCase()).slice(0, 18),
+          difficulty: mapDifficultyLabel(profile.difficulty),
+        },
+      ];
 
-  return [...easyQs, ...mediumQs, ...hardQs];
+  const generated = targets.flatMap(({ bucket, difficulty }) =>
+    bucket.map((sentence, index) => buildExamQuestion(sentence, difficulty, index, sentences, profile)).filter(Boolean)
+  );
+
+  return uniqueBy(generated, (question) => normalizeForCompare(question.question)).slice(0, 24);
 };
 
-const buildStudyFlashcards = (text, keyConcepts = []) => {
+const buildStudyFlashcards = (text, keyConcepts = [], generationOptions = {}) => {
+  const profile = normalizeGenerationOptions(generationOptions);
   const cards = [];
   const cleaned = stripPdfNoise(text);
   const sentences = sentenceParts(cleaned);
@@ -276,24 +748,49 @@ const buildStudyFlashcards = (text, keyConcepts = []) => {
     .slice(0, 8)
     .forEach((concept, index) => {
       const [title, detail] = String(concept).split(/:\s+(.+)/);
+      const cleanTitle = cleanSentenceText(title?.trim() || concept);
+      const supportingSentence = sentences.find((sentence) =>
+        normalizeForCompare(sentence).includes(normalizeForCompare(cleanTitle))
+      );
+      const cleanDetail = supportingSentence
+        ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(supportingSentence)), 180)
+        : detail?.trim()
+          ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(detail.trim())), 180)
+          : `Apply the key point about ${cleanTitle.toLowerCase()} as presented in the module.`;
+      const difficulty = mapDifficultyLabel(profile.difficulty, index, 12);
+      const front = buildFlashcardFront(cleanTitle, difficulty, profile.mode);
+      if ((profile.mode !== 'Class Prep' && isLikelyRecallPrompt(front)) || hasLongSourceFragment(front, cleaned)) return;
       cards.push({
-        front: title?.trim() || concept,
-        back: detail?.trim() || `Explain why ${concept} matters in the context of this module.`,
-        difficulty: index < 3 ? 'easy' : index < 6 ? 'medium' : 'hard'
+        front,
+        back: cleanDetail,
+        difficulty
       });
     });
 
   sentences.slice(0, 10).forEach((sentence, index) => {
     if (cards.length >= 12) return;
     const topic = getTopicPhrase(sentence);
+    const highYieldAnswer = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(sentence)), 180);
+    const difficulty = mapDifficultyLabel(profile.difficulty, index, 12);
+    const front = buildFlashcardFront(topic, difficulty, profile.mode);
+    if ((profile.mode !== 'Class Prep' && isLikelyRecallPrompt(front)) || hasLongSourceFragment(front, cleaned)) return;
     cards.push({
-      front: `What should you remember about ${topic}?`,
-      back: shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(sentence)), 180),
-      difficulty: index < 3 ? 'easy' : index < 6 ? 'medium' : 'hard'
+      front,
+      back: highYieldAnswer,
+      difficulty
     });
   });
 
-  return uniqueBy(cards, (card) => normalizeForCompare(`${card.front} ${card.back}`)).slice(0, 12);
+  const uniqueCards = [];
+
+  uniqueByNormalizedText(cards, (card) => `${card.front} ${card.back}`).forEach((card) => {
+    if (uniqueCards.some((existing) => isTooSimilar(existing.front, card.front) || isTooSimilar(existing.back, card.back))) {
+      return;
+    }
+    uniqueCards.push(card);
+  });
+
+  return uniqueCards.slice(0, 12);
 };
 
 const detectExtractionWarning = (cleanedText, pageCount = 0) => {
@@ -624,149 +1121,124 @@ const generateFallbackQuiz = (text) => {
   return questions.slice(0, 8);
 };
 
-const processWithAI = async (text) => {
+const processWithAI = async (text, generationOptions = {}) => {
+  const profile = normalizeGenerationOptions(generationOptions);
+  const cleaned = stripPdfNoise(text);
+
   if (!openai) {
-    console.warn('⚠️ OpenAI API key not configured - generating quiz using local method');
-    const cleaned = stripPdfNoise(text);
-    // Use new difficulty-specific question generation
-    const quizQuestions = generateMultipleChoiceQuestions(cleaned);
-    
-    // Extract academic summary (ignore disclaimers, headers, etc.)
-    const cleanedForSummary = cleaned
-      .replace(/^.*(©|copyright|all rights reserved|disclaimer|confidential|page \d+).*/gim, '')
-      .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '');
-    
-    const summary = cleanedForSummary
-      .split(/[.!?]/)
-      .map(s => s.trim())
-      .filter(s => s.length > 30 && !/^(chapter|section|unit|page|header)/i.test(s))
-      .slice(0, 5)
-      .join('. ') + '.';
-    
-    // Extract key academic concepts
-    const keyConcepts = cleaned
-      .split(/\s+/)
-      .filter(w => w.length > 5 && w[0] === w[0].toUpperCase() && /^[A-Za-z-]+$/.test(w))
-      .filter((w, i, arr) => arr.indexOf(w) === i) // Remove duplicates
-      .slice(0, 8);
-    
-    const conceptDetails = keyConcepts.map((concept) => {
-      const supportingSentence = sentenceParts(cleaned).find((sentence) =>
-        normalizeForCompare(sentence).includes(normalizeForCompare(concept))
-      );
-      const detail = supportingSentence
-        ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(supportingSentence)), 180)
-        : `Review how ${concept} is explained in the uploaded module.`;
-      return `${concept}: ${detail}`;
-    });
+    console.warn('OpenAI API key not configured - generating quiz using local method');
+    const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, profile);
+    const summary = summarizeLocally(cleaned);
+    const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned));
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: buildStudyFlashcards(cleaned, conceptDetails),
+      flashcards: profile.format === 'Quiz' ? [] : buildStudyFlashcards(cleaned, conceptDetails, profile),
       quizQuestions,
       aiAvailable: false
     };
   }
+
   try {
-    console.log('📚 Starting AI processing for text...');
-    const cleaned = stripPdfNoise(text);
-    
+    console.log('Starting AI processing for text...');
+
     const summaryResponse = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: `${SUMMARY_PROMPT}\n\n${cleaned.slice(0, 4000)}` }]
     });
     const summary = summaryResponse.choices[0].message.content;
-    console.log('✅ Summary generated');
+    console.log('Summary generated');
 
     const quizResponse = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: `${QUIZ_PROMPT}\n\n${cleaned.slice(0, 4000)}` }]
+      messages: [{ role: 'user', content: `${buildQuizPrompt(profile)}\n\n${cleaned.slice(0, 4000)}` }]
     });
 
     let quizData;
     try {
       const content = quizResponse.choices[0].message.content;
-      // Try to extract JSON block
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.error('❌ Could not find JSON in quiz response');
+        console.error('Could not find JSON in quiz response');
         quizData = { questions: [] };
       } else {
         quizData = JSON.parse(jsonMatch[0]);
-        console.log(`✅ Quiz generated with ${quizData.questions?.length || 0} questions`);
-        
-        // Assign difficulty levels to AI-generated questions (distribute evenly)
-        quizData.questions = (quizData.questions || []).map((q, idx) => ({
-          ...q,
-          difficulty: idx < Math.floor(quizData.questions.length / 3) ? 'easy' : 
-                     idx < Math.floor(2 * quizData.questions.length / 3) ? 'medium' : 'hard',
-          type: 'mcq'
-        }));
+        console.log(`Quiz generated with ${quizData.questions?.length || 0} questions`);
+
+        quizData.questions = (quizData.questions || [])
+          .filter((q) => isQualityMcq(q.question, q.options, cleaned))
+          .map((q, idx) => ({
+            ...q,
+            difficulty: mapDifficultyLabel(profile.difficulty, idx, quizData.questions.length || 1),
+            type: 'mcq'
+          }));
       }
     } catch (parseErr) {
-      console.error('❌ Error parsing quiz JSON:', parseErr.message);
+      console.error('Error parsing quiz JSON:', parseErr.message);
       quizData = { questions: [] };
     }
 
     const keyConcepts = summary
-      .split(/[•\n]/)
+      .split(/\n|•/)
       .filter(line => line.trim())
       .slice(0, 5)
       .map(line => line.replace(/^[\d\.\-\s]+/, '').trim())
+      .map(line => conceptTitleFromLine(line) || cleanSentenceText(line))
       .filter(Boolean);
 
-    const conceptDetails = keyConcepts.map((concept) => `${concept}: Focus on how this idea is developed in the uploaded module.`);
+    const conceptDetails = buildConceptDetails(
+      cleaned,
+      keyConcepts.length > 0 ? keyConcepts : extractCandidateConcepts(cleaned)
+    );
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: buildStudyFlashcards(cleaned, conceptDetails),
+      flashcards: profile.format === 'Quiz' ? [] : buildStudyFlashcards(cleaned, conceptDetails, profile),
       quizQuestions: quizData.questions || [],
       aiAvailable: true
     };
   } catch (err) {
-    console.error('❌ AI Processing Error:', err.message);
-    console.log('📚 Falling back to local quiz generation...');
-    // Use new difficulty-specific generation
-    const cleaned = stripPdfNoise(text);
-    const quizQuestions = generateMultipleChoiceQuestions(cleaned);
-    
-    // Extract academic summary using the same rules
-    const cleanedForSummary = cleaned
-      .replace(/^.*(©|copyright|all rights reserved|disclaimer|confidential|page \d+).*/gim, '')
-      .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '');
-    
-    const summary = cleanedForSummary
-      .split(/[.!?]/)
-      .map(s => s.trim())
-      .filter(s => s.length > 30 && !/^(chapter|section|unit|page|header)/i.test(s))
-      .slice(0, 5)
-      .join('. ') + '.';
-    
-    // Extract key academic concepts
-    const keyConcepts = cleaned
-      .split(/\s+/)
-      .filter(w => w.length > 5 && w[0] === w[0].toUpperCase() && /^[A-Za-z-]+$/.test(w))
-      .filter((w, i, arr) => arr.indexOf(w) === i) // Remove duplicates
-      .slice(0, 8);
-    
-    const conceptDetails = keyConcepts.map((concept) => `${concept}: Review this concept directly in the uploaded material.`);
+    console.error('AI Processing Error:', err.message);
+    console.log('Falling back to local quiz generation...');
+    const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, profile);
+    const summary = summarizeLocally(cleaned);
+    const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned));
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: buildStudyFlashcards(cleaned, conceptDetails),
+      flashcards: profile.format === 'Quiz' ? [] : buildStudyFlashcards(cleaned, conceptDetails, profile),
       quizQuestions,
       aiAvailable: false,
-      error: err.message
+      error: formatOpenAIError(err)
     };
   }
 };
 
+const syncModuleFlashcardsToCollection = async (moduleDoc) => {
+  if (!moduleDoc?._id || !moduleDoc.userId) return;
+
+  await Flashcard.deleteMany({ moduleId: moduleDoc._id, userId: moduleDoc.userId });
+
+  const cards = Array.isArray(moduleDoc.flashcards) ? moduleDoc.flashcards : [];
+  if (cards.length === 0) return;
+
+  await Flashcard.insertMany(
+    cards.map((card) => ({
+      userId: moduleDoc.userId,
+      moduleId: moduleDoc._id,
+      front: card.front,
+      back: card.back,
+      difficulty: card.difficulty || 'medium',
+    }))
+  );
+};
+
 router.post('/upload', auth, upload.single('file'), async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, mode, difficulty, format } = req.body;
     let text = '';
     let pdfData = '';
     let fileType = '';
@@ -796,7 +1268,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 
     // Clean PDF noise early so everything downstream uses the important content.
     const cleanedText = stripPdfNoise(text);
-    const aiResult = await processWithAI(cleanedText);
+    const aiResult = await processWithAI(cleanedText, { mode, difficulty, format });
     const extractionWarning = detectExtractionWarning(cleanedText, pageCount);
 
     const module = new Module({
@@ -819,11 +1291,13 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
     
     // Return response with indication of whether AI was available
     const response = module.toObject();
-    if (!aiResult.aiAvailable) {
-      response.warning = '⚠️ OpenAI API not configured. Summary and quiz questions not generated. Add OPENAI_API_KEY to .env to enable AI features.';
+    if (!aiResult.aiAvailable && !process.env.OPENAI_API_KEY?.trim()) {
+      response.warning = 'OpenAI API not configured. Summary and quiz questions were generated locally. Add OPENAI_API_KEY to .env to enable AI features.';
+    } else if (!aiResult.aiAvailable && aiResult.error) {
+      response.warning = aiResult.error;
     }
     if (aiResult.quizQuestions.length === 0 && aiResult.aiAvailable) {
-      response.warning = '⚠️ Could not generate quiz questions. The module was saved but quiz generation failed.';
+      response.warning = 'Could not generate quiz questions. The module was saved, but quiz generation failed.';
     }
     
     res.status(201).json(response);
@@ -838,6 +1312,64 @@ router.get('/', auth, async (req, res) => {
       .select('-pdfData')
       .sort({ createdAt: -1 });
     res.json(modules);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post('/regenerate-all', auth, async (req, res) => {
+  try {
+    const modules = await Module.find({ userId: req.user.id }).sort({ createdAt: -1 });
+
+    if (modules.length === 0) {
+      return res.json({
+        message: 'No modules found to regenerate.',
+        regeneratedCount: 0,
+        modules: [],
+      });
+    }
+
+    const results = [];
+
+    for (const module of modules) {
+      if (!module.originalText?.trim()) {
+        results.push({
+          moduleId: module._id,
+          title: module.title,
+          regenerated: false,
+          reason: 'No original content to regenerate from',
+        });
+        continue;
+      }
+
+      const aiResult = await processWithAI(module.originalText, req.body || {});
+
+      module.summary = aiResult.summary;
+      module.keyConcepts = aiResult.keyConcepts;
+      module.flashcards = aiResult.flashcards;
+      module.quizQuestions = aiResult.quizQuestions;
+      module.usedQuestionIndices = [];
+
+      await module.save();
+      await Flashcard.deleteMany({ moduleId: module._id, userId: req.user.id });
+      await syncModuleFlashcardsToCollection(module);
+
+      results.push({
+        moduleId: module._id,
+        title: module.title,
+        regenerated: true,
+        quizQuestions: aiResult.quizQuestions.length,
+        flashcards: aiResult.flashcards.length,
+      });
+    }
+
+    const regeneratedCount = results.filter((item) => item.regenerated).length;
+
+    res.json({
+      message: `Regenerated ${regeneratedCount} module${regeneratedCount === 1 ? '' : 's'}.`,
+      regeneratedCount,
+      modules: results,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -945,7 +1477,7 @@ router.post('/:id/regenerate-quiz', auth, async (req, res) => {
       return res.status(400).json({ message: 'No original content to generate quiz from' });
     }
 
-    const aiResult = await processWithAI(module.originalText);
+    const aiResult = await processWithAI(module.originalText, req.body || {});
     
     module.summary = aiResult.summary;
     module.keyConcepts = aiResult.keyConcepts;

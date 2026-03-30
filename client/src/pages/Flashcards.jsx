@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Flashcards() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const [allFlashcards, setAllFlashcards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('list'); // 'list' or 'study'
@@ -12,14 +12,25 @@ export default function Flashcards() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
 
+  const requireToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    logout();
+    setError('Your session expired. Please log in again.');
+    navigate('/login');
+    return null;
+  };
+
   useEffect(() => {
+    if (authLoading) return;
     if (!user) return;
     fetchFlashcards();
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchFlashcards = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = requireToken();
+      if (!token) return;
       const res = await fetch('/flashcards', {
         headers: { 'x-auth-token': token }
       });
@@ -58,7 +69,8 @@ export default function Flashcards() {
 
   const startStudy = async (moduleId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = requireToken();
+      if (!token) return;
       const res = await fetch(`/flashcards/${moduleId}/stats`, {
         headers: { 'x-auth-token': token }
       });
@@ -76,7 +88,7 @@ export default function Flashcards() {
   if (loading) return <div className="text-center py-10 text-gray-500">Loading flashcards...</div>;
 
   if (view === 'study' && selectedModule) {
-    return <StudyMode moduleId={selectedModule} onBack={() => { setView('list'); setSelectedModule(null); fetchFlashcards(); }} stats={stats} />;
+    return <StudyMode moduleId={selectedModule} onBack={() => { setView('list'); setSelectedModule(null); fetchFlashcards(); }} stats={stats} requireToken={requireToken} />;
   }
 
   const grouped = groupByModule();
@@ -150,7 +162,7 @@ export default function Flashcards() {
   );
 }
 
-function StudyMode({ moduleId, onBack, stats }) {
+function StudyMode({ moduleId, onBack, stats, requireToken }) {
   const [flashcards, setFlashcards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -164,7 +176,8 @@ function StudyMode({ moduleId, onBack, stats }) {
 
   const fetchFlashcards = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = requireToken();
+      if (!token) return;
       const res = await fetch(`/flashcards/${moduleId}`, {
         headers: { 'x-auth-token': token }
       });
@@ -218,7 +231,8 @@ function StudyMode({ moduleId, onBack, stats }) {
 
   const handleMarkCorrect = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = requireToken();
+      if (!token) return;
       await fetch(`/flashcards/${currentCard._id}/review`, {
         method: 'PUT',
         headers: {
@@ -236,7 +250,8 @@ function StudyMode({ moduleId, onBack, stats }) {
 
   const handleMarkDifficulty = async (difficulty) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = requireToken();
+      if (!token) return;
       await fetch(`/flashcards/${currentCard._id}/review`, {
         method: 'PUT',
         headers: {

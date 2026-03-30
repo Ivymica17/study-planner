@@ -1,14 +1,13 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import moduleRoutes from './routes/modules.js';
 import taskRoutes from './routes/tasks.js';
 import goalRoutes from './routes/goals.js';
 import flashcardRoutes from './routes/flashcards.js';
 
-dotenv.config();
 
 const app = express();
 

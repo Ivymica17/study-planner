@@ -239,8 +239,7 @@ export default function PdfPageStage({
   return (
     <div className="flex min-h-full items-start justify-center px-4 py-6 lg:px-8">
       <div
-        className="study-page-shell w-full max-w-[900px] rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_28px_80px_rgba(15,23,42,0.08)]"
-        style={{ width: `${Math.round(820 * (zoom / 100))}px` }}
+        className="study-page-shell inline-block max-w-full rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_28px_80px_rgba(15,23,42,0.08)]"
       >
         <div
           ref={stageRef}

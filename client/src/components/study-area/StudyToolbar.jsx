@@ -1,5 +1,10 @@
 import { DRAW_COLORS, HIGHLIGHT_COLORS, HIGHLIGHT_STYLES } from '../../utils/studyWorkspace';
 
+const HIGHLIGHT_STYLE_LEVELS = HIGHLIGHT_STYLES.reduce((acc, style, index) => {
+  acc[style.id] = index + 1;
+  return acc;
+}, {});
+
 function ToolButton({ active, children, ...props }) {
   return (
     <button
@@ -63,6 +68,8 @@ export default function StudyToolbar({
   onClearDrawing,
   onClearHighlights,
 }) {
+  const highlightLevel = HIGHLIGHT_STYLE_LEVELS[highlightStyle] || 2;
+
   return (
     <div className="border-b border-slate-200 bg-white/85 px-4 py-3 backdrop-blur">
       <div className="flex flex-wrap items-center gap-3">
@@ -154,7 +161,7 @@ export default function StudyToolbar({
       </div>
 
       {(activeTool === 'highlighter' || activeTool === 'remove-highlight') && (
-        <div className="mt-4 flex max-w-[380px] flex-col gap-5 rounded-[28px] bg-slate-900 px-5 py-5 text-white shadow-[0_20px_50px_rgba(15,23,42,0.28)]">
+        <div className="mt-4 flex max-w-[320px] flex-col gap-4 rounded-[24px] bg-slate-900 px-4 py-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.28)]">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Highlighter</p>
@@ -165,47 +172,37 @@ export default function StudyToolbar({
               </p>
             </div>
             <div
-              className="h-11 w-11 rounded-2xl border border-white/10"
+              className="h-9 w-9 rounded-xl border border-white/10"
               style={{ backgroundColor: highlightColor }}
             />
           </div>
 
           <div>
-            <p className="mb-3 text-sm font-medium text-slate-200">Size</p>
-            <div className="flex items-center gap-3">
-              {HIGHLIGHT_STYLES.map((style) => (
-                <button
-                  key={style.id}
-                  type="button"
-                  onClick={() => onHighlightStyleChange(style.id)}
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition ${
-                    highlightStyle === style.id
-                      ? 'border-sky-400 bg-sky-500/25'
-                      : 'border-white/10 bg-white/5 hover:bg-white/10'
-                  }`}
-                  title={style.name}
-                >
-                  <span
-                    className="block rounded-full bg-white/90"
-                    style={{
-                      width: `${10 + style.paddingY * 60}px`,
-                      height: `${3 + style.paddingY * 30}px`,
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
+            <p className="mb-2 text-sm font-medium text-slate-200">Size</p>
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
+              <span>Size</span>
+              <input
+                type="range"
+                min="1"
+                max={HIGHLIGHT_STYLES.length}
+                step="1"
+                value={highlightLevel}
+                onChange={(event) => onHighlightStyleChange(HIGHLIGHT_STYLES[Number(event.target.value) - 1]?.id || 'medium')}
+                className="w-full accent-sky-400"
+              />
+              <span className="w-4 text-right font-semibold text-white">{highlightLevel}</span>
+            </label>
           </div>
 
           <div>
-            <p className="mb-3 text-sm font-medium text-slate-200">Color</p>
-            <div className="grid grid-cols-4 gap-3">
+            <p className="mb-2 text-sm font-medium text-slate-200">Color</p>
+            <div className="grid grid-cols-4 gap-2.5">
               {HIGHLIGHT_COLORS.map((color) => (
                 <button
                   key={color.value}
                   type="button"
                   onClick={() => onApplyHighlight(color.value)}
-                  className={`h-11 w-11 rounded-full border-4 transition ${
+                  className={`h-10 w-10 rounded-full border-4 transition ${
                     highlightColor === color.value ? 'border-white scale-105' : 'border-transparent'
                   } ${hasPendingSelection ? 'shadow-[0_0_0_4px_rgba(255,255,255,0.12)]' : ''}`}
                   style={{ backgroundColor: color.value }}

@@ -1,22 +1,46 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import GenerationSettings from '../components/GenerationSettings';
 
 export default function ModuleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [module, setModule] = useState(null);
   const [quizStats, setQuizStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
+  const [generationMode, setGenerationMode] = useState('Quiz');
+  const [generationDifficulty, setGenerationDifficulty] = useState('Mixed');
+  const [generationFormat, setGenerationFormat] = useState('Both');
+
+  const requireToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    logout();
+    alert('Your session expired. Please log in again.');
+    navigate('/login');
+    return null;
+  };
 
   const regenerateQuiz = async () => {
-    const token = localStorage.getItem('token');
+    const token = requireToken();
+    if (!token) return;
     setRegenerating(true);
     try {
       const res = await fetch(`/modules/${id}/regenerate-quiz`, {
         method: 'POST',
-        headers: { 'x-auth-token': token }
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: JSON.stringify({
+          mode: generationMode,
+          difficulty: generationDifficulty,
+          format: generationFormat,
+        }),
       });
       if (res.ok) {
         const updatedModule = await res.json();
@@ -34,14 +58,23 @@ export default function ModuleDetail() {
   };
 
   const generateFlashcards = async () => {
-    const token = localStorage.getItem('token');
+    const token = requireToken();
+    if (!token) return;
     console.log('Generating flashcards for module:', id);
     console.log('Token exists:', !!token);
     setGeneratingFlashcards(true);
     try {
       const res = await fetch(`/flashcards/${id}/generate`, {
         method: 'POST',
-        headers: { 'x-auth-token': token }
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: JSON.stringify({
+          mode: generationMode,
+          difficulty: generationDifficulty,
+          format: generationFormat,
+        }),
       });
       console.log('Response status:', res.status);
       if (res.ok) {
@@ -65,7 +98,11 @@ export default function ModuleDetail() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('token');
+      const token = requireToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       try {
         const [moduleRes, statsRes] = await Promise.all([
           fetch(`/modules/${id}`, { headers: { 'x-auth-token': token } }),
@@ -124,6 +161,17 @@ export default function ModuleDetail() {
         </div>
 
         <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <GenerationSettings
+              mode={generationMode}
+              difficulty={generationDifficulty}
+              format={generationFormat}
+              onModeChange={setGenerationMode}
+              onDifficultyChange={setGenerationDifficulty}
+              onFormatChange={setGenerationFormat}
+            />
+          </div>
+
           {/* Quiz Card with Stats */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">📚 Quick Quiz</h2>
