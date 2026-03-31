@@ -134,6 +134,38 @@ const buildAppliedFront = (topic, detail, difficulty = 'medium', mode = 'Board')
 
 const buildModuleBasedBack = (detail) => completeSentence(shorten(detail, 170));
 
+const ensureQuestionMark = (value) => {
+  const text = normalizeText(value);
+  if (!text) return '';
+  return /[?]$/.test(text) ? text : `${text.replace(/[.!]+$/, '')}?`;
+};
+
+const finalizeGeneratedCards = (cards = [], limit = 20) => {
+  const seenTopics = new Set();
+  const finalized = [];
+
+  cards.forEach((card) => {
+    const front = ensureQuestionMark(card?.front);
+    const back = buildModuleBasedBack(card?.back);
+    const topicKey = normalizeKey(`${front} ${back}`)
+      .split(' ')
+      .filter((word) => word.length > 3)
+      .slice(0, 6)
+      .join(' ');
+
+    if (!front || !back) return;
+    if (seenTopics.has(topicKey)) return;
+    seenTopics.add(topicKey);
+    finalized.push({
+      front,
+      back,
+      difficulty: card?.difficulty || 'medium',
+    });
+  });
+
+  return uniqueCards(finalized).slice(0, limit);
+};
+
 // Generate flashcards from module content
 router.post('/:moduleId/generate', auth, async (req, res) => {
   try {
@@ -224,7 +256,7 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
 
     console.log('After sentence processing, flashcards count:', flashcards.length);
 
-    const cleanedFlashcards = uniqueCards(flashcards).slice(0, 20);
+    const cleanedFlashcards = finalizeGeneratedCards(flashcards, 20);
 
     // Shuffle flashcards
     for (let i = cleanedFlashcards.length - 1; i > 0; i--) {

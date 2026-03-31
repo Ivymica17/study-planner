@@ -65,7 +65,7 @@ export default function GenerationSettings({
       <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Generation Settings</p>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Choose the study style, difficulty, and output format before generating content from this module.
+          Choose the study style, difficulty, and output format before generating cleaner exam-style questions and flashcards from this module.
         </p>
       </div>
 

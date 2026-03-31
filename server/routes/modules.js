@@ -624,6 +624,106 @@ const shuffleOptions = (options, correctIndex = 0) => {
   };
 };
 
+const ensureQuestionMark = (value) => {
+  const text = cleanSentenceText(value).replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  return /[?]$/.test(text) ? text : `${text.replace(/[.!]+$/, '')}?`;
+};
+
+const sanitizeOptionText = (value) => {
+  const text = cleanSentenceText(value).replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  return text.replace(/[?]+$/, '').replace(/\s+\./g, '.');
+};
+
+const sanitizeExplanation = (value, fallbackTopic = 'the concept') => {
+  const text = cleanSentenceText(value).replace(/\s+/g, ' ').trim();
+  if (!text) return `The correct answer best matches the module's explanation of ${fallbackTopic}.`;
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+};
+
+const conceptFingerprint = (question, explanation = '') => {
+  const normalized = normalizeConceptKey(`${question} ${explanation}`);
+  return normalized
+    .split(' ')
+    .filter((word) => word.length > 3 && !CONTENT_STOPWORDS.has(word))
+    .slice(0, 6)
+    .join(' ');
+};
+
+const finalizeMcqs = (items = [], sourceText = '', mode = 'Quiz', limit = 24) => {
+  const seenQuestions = new Set();
+  const seenConcepts = new Set();
+  const finalized = [];
+
+  items.forEach((item) => {
+    const question = ensureQuestionMark(item?.question);
+    const options = Array.isArray(item?.options)
+      ? item.options.map((option) => sanitizeOptionText(option)).filter(Boolean)
+      : [];
+    const correctAnswer = Number.isInteger(item?.correctAnswer) ? item.correctAnswer : -1;
+    const explanation = sanitizeExplanation(item?.explanation, getTopicPhrase(question));
+
+    if (!question || options.length !== 4 || correctAnswer < 0 || correctAnswer > 3) return;
+    if (new Set(options.map((option) => normalizeForCompare(option))).size !== 4) return;
+    if (!isQualityMcq(question, options, sourceText, mode)) return;
+
+    const questionKey = normalizeForCompare(question);
+    const conceptKey = conceptFingerprint(question, explanation);
+
+    if (seenQuestions.has(questionKey)) return;
+    if (conceptKey && seenConcepts.has(conceptKey)) return;
+
+    seenQuestions.add(questionKey);
+    if (conceptKey) seenConcepts.add(conceptKey);
+
+    finalized.push({
+      question,
+      options,
+      correctAnswer,
+      difficulty: item?.difficulty || 'medium',
+      type: 'mcq',
+      explanation,
+    });
+  });
+
+  return finalized.slice(0, limit);
+};
+
+const sanitizeFlashcardFront = (value) => ensureQuestionMark(value);
+
+const sanitizeFlashcardBack = (value, fallbackTopic = 'the concept') => {
+  const text = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(value)), 180);
+  if (!text) return `Review the module's explanation of ${fallbackTopic}.`;
+  return text;
+};
+
+const finalizeFlashcards = (cards = [], limit = 12) => {
+  const seenConcepts = new Set();
+  const finalized = [];
+
+  cards.forEach((card) => {
+    const front = sanitizeFlashcardFront(card?.front);
+    const back = sanitizeFlashcardBack(card?.back, getTopicPhrase(card?.front));
+    const conceptKey = conceptFingerprint(front, back);
+
+    if (!front || !back) return;
+    if (finalized.some((existing) => isTooSimilar(existing.front, front) || isTooSimilar(existing.back, back))) {
+      return;
+    }
+    if (conceptKey && seenConcepts.has(conceptKey)) return;
+
+    if (conceptKey) seenConcepts.add(conceptKey);
+    finalized.push({
+      front,
+      back,
+      difficulty: card?.difficulty || 'medium',
+    });
+  });
+
+  return finalized.slice(0, limit);
+};
+
 const buildExamQuestion = (sentence, difficulty, idx, pool, profile) => {
   const correct = makeAppliedOption(sentence, 'best');
   const distractorsRaw = pickDistractors(sentence, pool, 3);
@@ -696,7 +796,7 @@ const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
       })
       .filter(Boolean);
 
-    return uniqueBy(directQuestions, (question) => normalizeForCompare(question.question)).slice(0, 12);
+    return finalizeMcqs(directQuestions, cleanText, profile.mode, 12);
   }
 
   const easyPool = [];
@@ -735,7 +835,7 @@ const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
     bucket.map((sentence, index) => buildExamQuestion(sentence, difficulty, index, sentences, profile)).filter(Boolean)
   );
 
-  return uniqueBy(generated, (question) => normalizeForCompare(question.question)).slice(0, 24);
+  return finalizeMcqs(generated, cleanText, profile.mode, 24);
 };
 
 const buildStudyFlashcards = (text, keyConcepts = [], generationOptions = {}) => {
@@ -790,7 +890,7 @@ const buildStudyFlashcards = (text, keyConcepts = [], generationOptions = {}) =>
     uniqueCards.push(card);
   });
 
-  return uniqueCards.slice(0, 12);
+  return finalizeFlashcards(uniqueCards, 12);
 };
 
 const detectExtractionWarning = (cleanedText, pageCount = 0) => {
@@ -1134,7 +1234,7 @@ const processWithAI = async (text, generationOptions = {}) => {
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : buildStudyFlashcards(cleaned, conceptDetails, profile),
+      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, profile), 12),
       quizQuestions,
       aiAvailable: false
     };
@@ -1166,13 +1266,18 @@ const processWithAI = async (text, generationOptions = {}) => {
         quizData = JSON.parse(jsonMatch[0]);
         console.log(`Quiz generated with ${quizData.questions?.length || 0} questions`);
 
-        quizData.questions = (quizData.questions || [])
+        quizData.questions = finalizeMcqs(
+          (quizData.questions || [])
           .filter((q) => isQualityMcq(q.question, q.options, cleaned))
           .map((q, idx) => ({
             ...q,
             difficulty: mapDifficultyLabel(profile.difficulty, idx, quizData.questions.length || 1),
             type: 'mcq'
-          }));
+          })),
+          cleaned,
+          profile.mode,
+          24,
+        );
       }
     } catch (parseErr) {
       console.error('Error parsing quiz JSON:', parseErr.message);
@@ -1195,7 +1300,7 @@ const processWithAI = async (text, generationOptions = {}) => {
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : buildStudyFlashcards(cleaned, conceptDetails, profile),
+      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, profile), 12),
       quizQuestions: quizData.questions || [],
       aiAvailable: true
     };
@@ -1209,7 +1314,7 @@ const processWithAI = async (text, generationOptions = {}) => {
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : buildStudyFlashcards(cleaned, conceptDetails, profile),
+      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, profile), 12),
       quizQuestions,
       aiAvailable: false,
       error: formatOpenAIError(err)

@@ -32,22 +32,22 @@ export function buildQuizPrompt(profile) {
   const { mode, difficulty } = normalizeGenerationOptions(profile);
 
   const modeInstruction = mode === 'Class Prep'
-    ? 'Create direct, simple, recall-based questions grounded strictly in the module. Module wording may be used when appropriate.'
+    ? 'Create simple recall-focused classroom questions grounded strictly in the module.'
     : mode === 'Quiz'
-      ? 'Create moderate-difficulty questions that test concept understanding, not just recognition.'
+      ? 'Create moderate questions that test concept understanding and light application.'
       : mode === 'College'
-        ? 'Create analytical, situational, multi-step questions that require interpretation and practical academic reasoning.'
-        : 'Create complex, tricky, real-world application questions in a board-exam style.';
+        ? 'Create analytical college-exam questions that require interpretation and practical academic reasoning.'
+        : 'Create board-exam style questions using realistic scenarios, close answer choices, and strong practical judgment.';
 
   const difficultyInstruction = difficulty === 'Easy'
-    ? 'Keep the set easy: focus on recall and identification. Direct module wording is allowed.'
+    ? 'Keep the set easy: focus on recall and identification. Direct module wording is allowed when natural.'
     : difficulty === 'Medium'
       ? 'Keep the set medium: focus on application and explanation.'
       : difficulty === 'Hard'
         ? 'Keep the set hard: focus on analysis, problem-solving, and close discrimination between plausible options.'
         : 'Keep the set mixed: include a balanced spread of easy, medium, and hard questions.';
 
-  return `Act as an expert teacher and exam creator. Generate high-quality questions strictly based on the uploaded module only. ${modeInstruction} ${difficultyInstruction} Core rules: you may copy sentences directly from the module when appropriate, but do not overuse the same sentence across multiple questions. Do not repeat questions. Do not test the same concept more than once. Each question must assess a unique concept, idea, or application from the module. Format rules: output multiple-choice questions only, each with exactly 4 options, 1 correct answer, and plausible distractors. Avoid "all of the above" and "none of the above". Quality rules: avoid repetitive wording or patterns, keep questions clear and accurate, mix direct module-based wording with rephrased wording when appropriate, and use scenario-based questions for higher modes. Output JSON only in this structure: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":0,"explanation":"..."}]}`;
+  return `Act as an expert teacher, exam creator, and exam editor. Generate high-quality multiple-choice questions strictly from the uploaded module only. ${modeInstruction} ${difficultyInstruction} Editing rules: remove weak or repetitive items, keep each question tied to one unique concept only, and vary phrasing across the set. MCQ rules: each item must have exactly 4 options, 1 correct answer, and realistic distractors. Avoid trick-only answers, "all of the above", and "none of the above". Quality target: use the tone and precision of a polished exam item such as "A manager wants to identify the specific skills and knowledge required for a newly hired employee's job. Which approach should be used?" with short, precise, exam-ready choices. Coverage rules: do not repeat questions, do not reuse the same concept twice, and cover as many distinct concepts as the module supports. Output JSON only in this structure: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":0,"explanation":"..."}]}`;
 }
 
 export function buildFlashcardGuidance(profile) {
@@ -69,5 +69,5 @@ export function buildFlashcardGuidance(profile) {
         ? 'Keep prompts analytical and problem-solving oriented.'
         : 'Keep the set balanced across easy, medium, and hard prompts.';
 
-  return `${modeGuidance} ${difficultyGuidance} Use concise answers based strictly on the module. Avoid repeated concepts and repeated wording patterns.`;
+  return `${modeGuidance} ${difficultyGuidance} Flashcard rules: Front must be a clear question or concept prompt, Back must be a concise answer. Do not reuse the same concept twice. Remove weak or repetitive cards and keep the wording polished and study-ready.`;
 }
