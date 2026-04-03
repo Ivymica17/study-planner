@@ -7,6 +7,7 @@ import moduleRoutes from './routes/modules.js';
 import taskRoutes from './routes/tasks.js';
 import goalRoutes from './routes/goals.js';
 import flashcardRoutes from './routes/flashcards.js';
+import highlightToolRoutes from './routes/highlightTools.js';
 
 
 const app = express();
@@ -23,6 +24,7 @@ app.use('/modules', moduleRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/goals', goalRoutes);
 app.use('/flashcards', flashcardRoutes);
+app.use('/highlight-tools', highlightToolRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

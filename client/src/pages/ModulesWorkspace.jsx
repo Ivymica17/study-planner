@@ -225,8 +225,8 @@ function ModuleCard({ module, onOpenStudyArea, onOpenDetail, onDelete }) {
                     </li>
                   ))}
                 </ol>
-                {question.explanation && (
-                  <p className="mt-3 text-sm text-slate-500">Why it’s right: {question.explanation}</p>
+                {(question.correctExplanation || question.explanation) && (
+                  <p className="mt-3 text-sm text-slate-500">Why it’s right: {question.correctExplanation || question.explanation}</p>
                 )}
               </div>
             ))}

@@ -160,7 +160,7 @@ export default function StudyArea() {
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-700">Study Tools</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">Study Area</h1>
         <p className="mt-3 text-base leading-7 text-slate-600">
-          Open your PDFs in a focused reading workspace with highlighting, pen tools, page thumbnails, and saved progress.
+          Open your PDFs in a focused reading workspace with highlighting, pen tools, saved progress, and AI actions that turn highlights into summaries, quizzes, and flashcards.
         </p>
       </div>
 

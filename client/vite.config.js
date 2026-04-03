@@ -10,7 +10,8 @@ export default defineConfig({
       '/modules': 'http://localhost:5000',
       '/tasks': 'http://localhost:5000',
       '/goals': 'http://localhost:5000',
-      '/flashcards': 'http://localhost:5000'
+      '/flashcards': 'http://localhost:5000',
+      '/highlight-tools': 'http://localhost:5000'
     }
   }
 })

@@ -1,0 +1,62 @@
+[2m12:04:17 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:17 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:52 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /flashcards[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:52 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /flashcards[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:54 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:54 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:09:29 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/upload[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:09:29 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69ca8ffc29a45060976ee39d/file[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m12:09:29 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69ca8ffc29a45060976ee39d/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:05 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/upload[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+^C^C

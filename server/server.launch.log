@@ -1,0 +1,218 @@
+
+> study-planner-server@1.0.0 dev
+> node --watch server.js
+
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Generating flashcards for module: 69c8fcb9e8194e0effabd0b9 user: 69c13fd8a9c26046192d1324
+Module found: 11 keyConcepts: 8 text length: 15534
+Cleared existing flashcards
+Processing key concepts: 8
+After key concepts processing, flashcards count: 8
+Extracted terms: 10
+After term extraction, flashcards count: 18
+After sentence processing, flashcards count: 18
+Final flashcards count: 18
+Sample flashcard: {
+  front: 'Exam Recall: Define "EMPLOYEE" in your own words.',
+  back: 'EMPLOYEE is a core concept from this module. State its definition, why it matters, and one practical implication from your handout.',
+  difficulty: 'easy'
+}
+Created flashcards: 18
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Warning: TT: undefined function: 32
+Warning: TT: undefined function: 32
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Generating flashcards for module: 69ca8ffc29a45060976ee39d user: 69c13fd8a9c26046192d1324
+Module found: 2 keyConcepts: 8 text length: 8822
+Cleared existing flashcards
+Processing key concepts: 8
+After key concepts processing, flashcards count: 8
+Found sentences: 59
+After sentence processing, flashcards count: 16
+Final flashcards count: 16
+Sample flashcard: {
+  front: 'When • under the technical rules of law, the real. appears in a practical problem, what should the student focus on first?',
+  back: '• Under the technical rules of law, the real contract cannot be enforced until reformed.',
+  difficulty: 'medium'
+}
+Created flashcards: 16
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Failed running 'server.js'. Waiting for file changes before restarting...
+Restarting 'server.js'
+Failed running 'server.js'. Waiting for file changes before restarting...
+Restarting 'server.js'
+Failed running 'server.js'. Waiting for file changes before restarting...
+Restarting 'server.js'
+Failed running 'server.js'. Waiting for file changes before restarting...
+Restarting 'server.js'
+Failed running 'server.js'. Waiting for file changes before restarting...
+Restarting 'server.js'
+Failed running 'server.js'. Waiting for file changes before restarting...
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Warning: TT: undefined function: 21
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Warning: TT: undefined function: 21
+Warning: TT: invalid function id: 136
+Restarting 'server.js'
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Warning: TT: undefined function: 32
+Warning: TT: undefined function: 32
+Starting AI processing for text...
+Falling back to local quiz generation...
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Generating flashcards for module: 69caacf2ed153e294742dda0 user: 69c13fd8a9c26046192d1324
+Module found: BLAW keyConcepts: 3 text length: 8822
+Cleared existing flashcards
+Processing key concepts: 3
+After key concepts processing, flashcards count: 2
+Found sentences: 59
+After sentence processing, flashcards count: 7
+Final flashcards count: 7
+Sample flashcard: {
+  front: 'According to the module, what best explains if a mistake, fraud, inequitable conduct, or.?',
+  back: 'If a mistake, fraud, inequitable conduct, or accident has prevented a meeting of the parties’ minds, the proper remedy is not the instrument’s reformation but the.',
+  difficulty: 'easy'
+}
+Created flashcards: 7
+Warning: TT: undefined function: 21
+Restarting 'server.js'
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Warning: TT: undefined function: 21
+Warning: TT: invalid function id: 136
+Starting AI processing for text...
+Falling back to local quiz generation...
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Restarting 'server.js'
+Server running on port 5000
+MongoDB connected
+Warning: TT: undefined function: 32
+Warning: TT: undefined function: 32
+Starting AI processing for text...
+Falling back to local quiz generation...
+Failed running 'server.js'. Waiting for file changes before restarting...

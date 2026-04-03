@@ -111,6 +111,25 @@ const cleanSentenceText = (s) => {
   return out;
 };
 
+const detectContentLanguage = (text = '', title = '') => {
+  const sample = `${title} ${text}`.toLowerCase();
+
+  if (/\b(komunikasyon|filipino|tagalog|wikang filipino|asignaturang filipino|panitikan)\b/i.test(sample)) {
+    return 'tl';
+  }
+
+  const lexicalMatches = sample.match(/\b(wika|salita|pangungusap|talata|balarila|kahulugan|pagbasa|pagsulat|komunikasyon|panitikan|ponema|morpema|sanaysay|talumpati|retorika|diskurso)\b/gi) || [];
+  const functionMatches = sample.match(/\b(ang|mga|ng|sa|at|ay|ito|isang|para|mula|dahil|tungkol|ayon)\b/gi) || [];
+
+  if (lexicalMatches.length >= 2 || functionMatches.length >= 8) {
+    return 'tl';
+  }
+
+  return 'en';
+};
+
+const isTagalog = (language = 'en') => language === 'tl';
+
 const sentenceParts = (text) =>
   (text.match(/[^.!?]+[.!?]+/g) || [])
     .map(s => cleanSentenceText(s))
@@ -241,7 +260,7 @@ const extractCandidateConcepts = (text) => {
   return dedupeSimilarStrings([...headingCandidates, ...sentenceCandidates], 8);
 };
 
-const buildConceptDetails = (text, rawConcepts = []) => {
+const buildConceptDetails = (text, rawConcepts = [], language = detectContentLanguage(text)) => {
   const cleaned = stripPdfNoise(text);
   const sentences = sentenceParts(cleaned);
 
@@ -253,7 +272,9 @@ const buildConceptDetails = (text, rawConcepts = []) => {
 
       const detail = supportingSentence
         ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(supportingSentence)), 180)
-        : `Focus on how ${concept.toLowerCase()} is applied in the uploaded module.`;
+        : isTagalog(language)
+          ? `Pansinin kung paano ginagamit ang ${concept.toLowerCase()} sa in-upload na modyul.`
+          : `Focus on how ${concept.toLowerCase()} is applied in the uploaded module.`;
 
       return `${concept}: ${detail}`;
     });
@@ -318,6 +339,13 @@ const hasWeakOptions = (options = []) => {
   return min < 28 || max - min > 90 || unique.size !== 4;
 };
 
+const containsBannedExamPhrases = (text = '') =>
+  /\b(focus on|this module|uploaded module)\b/i.test(String(text || ''));
+
+const isMetaDescriptionQuestion = (text = '') =>
+  /\b(what is|which statement best describes|what best describes|according to the module, what is|which statement is correct)\b/i
+    .test(String(text || ''));
+
 const looksScenarioBased = (text) =>
   /\b(scenario|case|manager|student|supervisor|employee|client|team|decision|situation|must decide|faces|during|after|while|when)\b/i.test(String(text || ''));
 
@@ -326,15 +354,18 @@ const isQualityMcq = (question, options, sourceText, mode = 'Board') => {
   if (hasWeakOptions(options)) return false;
   if (hasLongSourceFragment(question, sourceText)) return false;
   if (options.some((option) => hasLongSourceFragment(option, sourceText))) return false;
+  if (containsBannedExamPhrases(question) || options.some((option) => containsBannedExamPhrases(option))) return false;
 
-  if (mode === 'Class Prep') {
+  if (mode === 'Class') {
     return true;
   }
 
   if (mode === 'Quiz') {
+    if (isMetaDescriptionQuestion(question) && !looksScenarioBased(question)) return false;
     return !isLikelyRecallPrompt(question) || looksScenarioBased(question);
   }
 
+  if (mode === 'College' && isMetaDescriptionQuestion(question) && !looksScenarioBased(question)) return false;
   if (!looksScenarioBased(question)) return false;
   return true;
 };
@@ -357,65 +388,131 @@ const titleCase = (value) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 
-const buildQuestionStem = (title, detail, difficulty = 'medium', mode = 'Quiz') => {
+const buildQuestionStem = (title, detail, difficulty = 'medium', mode = 'Quiz', language = 'en') => {
   const label = cleanSentenceText(title || getTopicPhrase(detail) || 'this concept');
+  const lowerLabel = label.toLowerCase();
 
-  if (mode === 'Class Prep') {
+  if (isTagalog(language)) {
+    if (mode === 'Class') {
+      const bank = [
+        `Alin ang pinakamahusay na paglalarawan ng ${lowerLabel} ayon sa modyul?`,
+        `Ayon sa modyul, ano ang ${lowerLabel}?`,
+        `Aling pahayag tungkol sa ${lowerLabel} ang tama?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    if (mode === 'Quiz') {
+      const bank = difficulty === 'easy'
+        ? [
+            `Aling pahayag ang pinakatumpak tungkol sa ${lowerLabel}?`,
+            `Alin ang tamang ideya kaugnay ng ${lowerLabel}?`,
+            `Aling sagot ang tumutugma sa kahulugan ng ${lowerLabel}?`,
+          ]
+        : [
+            `Kapag kailangang ilapat ang ${lowerLabel} sa isang sitwasyon, aling sagot ang pinakaangkop?`,
+            `Sa pag-unawa sa ${lowerLabel}, aling pagpapasya ang pinakanatatanggol?`,
+            `Aling pagpipilian ang nagpapakita ng wastong paglalapat ng ${lowerLabel}?`,
+          ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    if (mode === 'College') {
+      const bank = [
+        `Sa isang suliraning akademiko na may kinalaman sa ${lowerLabel}, aling sagot ang pinakanatatanggol?`,
+        `Kapag sinusuri ang ${lowerLabel} sa isang praktikal na kaso, aling pagpili ang pinakaangkop?`,
+        `Aling paglalapat ng ${lowerLabel} ang nagpapakita ng pinakamainam na pangangatwiran?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    const bank = difficulty === 'hard'
+      ? [
+          `Sa isang masalimuot na sitwasyon na umiikot sa ${lowerLabel}, aling pasya ang pinakamahusay na naipapaliwanag?`,
+          `Kung ${lowerLabel} ang pangunahing usapin, aling sagot ang nagpapakita ng pinakamalakas na pagsusuri?`,
+        ]
+      : [
+          `Sa isang sitwasyon na may kinalaman sa ${lowerLabel}, aling sagot ang pinakaangkop?`,
+          `Kapag kailangang unawain ang ${lowerLabel} sa paggamit, aling pagpili ang pinakatumpak?`,
+        ];
+
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'Class') {
     const bank = [
-      `What best describes ${label.toLowerCase()} according to the module?`,
-      `According to the module, what is ${label.toLowerCase()}?`,
-      `Which statement about ${label.toLowerCase()} is correct?`,
+      `What best describes ${lowerLabel} according to the module?`,
+      `According to the module, what is ${lowerLabel}?`,
+      `Which statement about ${lowerLabel} is correct?`,
     ];
     return bank[Math.floor(Math.random() * bank.length)];
   }
 
   if (mode === 'Quiz') {
-    const bank = [
-      `Which statement best describes ${label.toLowerCase()} in the module?`,
-      `According to the module, what best explains ${label.toLowerCase()}?`,
-      `Which statement is most accurate about ${label.toLowerCase()}?`,
-    ];
+    const bank = difficulty === 'easy'
+      ? [
+          `Which statement is most accurate about ${lowerLabel}?`,
+          `Which idea correctly matches ${lowerLabel}?`,
+          `Which answer best reflects the meaning of ${lowerLabel}?`,
+        ]
+      : [
+          `When ${lowerLabel} must be applied in a situation, which response fits best?`,
+          `Which response shows the soundest understanding of ${lowerLabel}?`,
+          `Which option best applies ${lowerLabel} in context?`,
+        ];
     return bank[Math.floor(Math.random() * bank.length)];
   }
 
   if (mode === 'College') {
     const bank = [
-      `Which statement best explains ${label.toLowerCase()} based on the module?`,
-      `Which interpretation of ${label.toLowerCase()} is most consistent with the module?`,
-      `Which statement best applies the module's discussion of ${label.toLowerCase()}?`,
+      `In an academic problem involving ${lowerLabel}, which response is most defensible?`,
+      `Which interpretation of ${lowerLabel} is strongest in a practical academic case?`,
+      `When ${lowerLabel} becomes the key issue, which response shows the best reasoning?`,
     ];
     return bank[Math.floor(Math.random() * bank.length)];
   }
 
   const bank = difficulty === 'hard'
     ? [
-        `Which statement most accurately applies the module's discussion of ${label.toLowerCase()}?`,
-        `Which option best reflects the module's reasoning about ${label.toLowerCase()}?`,
+        `In a more complex situation involving ${lowerLabel}, which judgment is most defensible?`,
+        `When ${lowerLabel} becomes the deciding issue, which option shows the strongest analysis?`,
       ]
     : [
-        `Which statement best describes ${label.toLowerCase()} in the module?`,
-        `According to the module, what is most accurate about ${label.toLowerCase()}?`,
+        `In a situation involving ${lowerLabel}, which response best fits?`,
+        `Which option shows the most accurate understanding of ${lowerLabel} in use?`,
       ];
 
   return bank[Math.floor(Math.random() * bank.length)];
 };
 
-const buildDirectDistractor = (detail, title, style = 'related') => {
+const buildDirectDistractor = (detail, title, style = 'related', language = 'en') => {
   const concept = cleanSentenceText(title || getTopicPhrase(detail) || 'the concept').toLowerCase();
   const clause = getKeyClause(detail, 10) || concept;
 
+  if (isTagalog(language)) {
+    if (style === 'opposite') {
+      return `Walang kaugnayan ang ideyang ito sa ${clause.toLowerCase()} at hindi ito ang tamang batayan ng pagpapasya.`;
+    }
+
+    if (style === 'swap') {
+      return `Itinuturing ito bilang ibang proseso o yugto kaysa sa wastong pag-unawa sa konsepto.`;
+    }
+
+    return `Masyado itong malawak at hindi isinasaalang-alang ang tiyak na layunin o kundisyong mahalaga sa tamang paglalapat.`;
+  }
+
   if (style === 'opposite') {
-    return `${titleCase(concept)} is unrelated to ${clause.toLowerCase()} and does not affect performance improvement in the module's discussion.`;
+    return `This idea is unrelated to ${clause.toLowerCase()} and is not the proper basis for the decision.`;
   }
 
   if (style === 'swap') {
-    return `${titleCase(concept)} is presented as a different process, method, or stage than the one actually described in the module.`;
+    return `It treats the concept as a different process, method, or stage from the one actually intended.`;
   }
 
-  return `${titleCase(concept)} is described too broadly and ignores the specific purpose or condition emphasized in the module.`;
+  return `It is framed too broadly and ignores the specific purpose or condition needed for correct application.`;
 };
 
-const buildDirectQuestion = (title, detail, distractorPool = [], difficulty = 'medium', mode = 'Quiz') => {
+const buildDirectQuestion = (title, detail, distractorPool = [], difficulty = 'medium', mode = 'Quiz', language = 'en') => {
   const correct = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(detail)), 150);
   const rawDistractors = distractorPool
     .map((item) => shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(item.detail || item)), 150))
@@ -424,9 +521,9 @@ const buildDirectQuestion = (title, detail, distractorPool = [], difficulty = 'm
   const distractors = uniqueBy(
     [
       ...rawDistractors.slice(0, 3),
-      buildDirectDistractor(detail, title, 'related'),
-      buildDirectDistractor(detail, title, 'swap'),
-      buildDirectDistractor(detail, title, 'opposite'),
+      buildDirectDistractor(detail, title, 'related', language),
+      buildDirectDistractor(detail, title, 'swap', language),
+      buildDirectDistractor(detail, title, 'opposite', language),
     ],
     (option) => normalizeForCompare(option),
   ).filter((option) => normalizeForCompare(option) !== normalizeForCompare(correct)).slice(0, 3);
@@ -434,7 +531,9 @@ const buildDirectQuestion = (title, detail, distractorPool = [], difficulty = 'm
   if (distractors.length < 3) return null;
 
   const { options, correctAnswer } = shuffleOptions([correct, ...distractors], 0);
-  const question = buildQuestionStem(title, detail, difficulty, mode);
+  const question = buildQuestionStem(title, detail, difficulty, mode, language);
+  const topic = cleanSentenceText(title || getTopicPhrase(detail));
+  const correctExplanation = buildCorrectExplanation(topic, language);
 
   return {
     question,
@@ -442,15 +541,67 @@ const buildDirectQuestion = (title, detail, distractorPool = [], difficulty = 'm
     correctAnswer,
     difficulty,
     type: 'mcq',
-    explanation: `The correct answer matches how the module explains ${cleanSentenceText(title || getTopicPhrase(detail))}.`
+    explanation: correctExplanation,
+    correctExplanation,
+    optionExplanations: buildOptionExplanations(options, correctAnswer, topic, language, correctExplanation),
   };
 };
 
-const sentenceToScenario = (sentence, topic, difficulty = 'medium', mode = 'Board') => {
+const sentenceToScenario = (sentence, topic, difficulty = 'medium', mode = 'Board', language = 'en') => {
   const clause = getKeyClause(sentence, difficulty === 'hard' ? 12 : 9) || topic;
   const topicLabel = topic || 'the issue';
 
-  if (mode === 'Class Prep') {
+  if (isTagalog(language)) {
+    if (mode === 'Class') {
+      const bank = [
+        `May maikling tanong sa klase tungkol sa ${topicLabel}. Aling ideya ang dapat unang maisip?`,
+        `Naghahanda ang isang mag-aaral at nakita ang ${topicLabel}. Aling sagot ang pinakaangkop sa aralin?`,
+        `May maikling concept check tungkol sa ${topicLabel}. Aling sagot ang pinakatumpak?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    if (mode === 'Quiz') {
+      const bank = [
+        `Nakatuon sa ${topicLabel} ang isang tanong sa pagsusulit. Aling sagot ang pinakamahusay na sinusuportahan ng modyul?`,
+        `Dapat sagutin ng isang mag-aaral ang maikling tanong tungkol sa ${topicLabel}. Aling pagpipilian ang pinakamalakas?`,
+        `Aling sagot ang pinakamahusay na paglalapat ng talakayan ng modyul tungkol sa ${topicLabel}?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    if (mode === 'College') {
+      const bank = [
+        `Dapat ilapat ng isang mag-aaral ang ${topicLabel} sa isang suliraning akademiko. Aling sagot ang pinakaangkop sa modyul?`,
+        `Sa isang college-level na tanong tungkol sa ${topicLabel}, aling sagot ang pinakanatatanggol?`,
+        `May praktikal na kasong umiikot sa ${topicLabel}. Aling pagpipilian ang nagpapakita ng pinakamahusay na pangangatwiran?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    const easyScenarios = [
+      `Nirerepaso ng isang mag-aaral ang ${topicLabel} bago ang pagsusulit. Aling sagot ang pinakaangkop sa aralin?`,
+      `Sa recitation, hinihingi ang paglalapat ng ${topicLabel}. Aling sagot ang pinakatumpak?`,
+      `Napunta sa ${topicLabel} ang talakayan sa klase. Aling pagpipilian ang pinakamahusay na sumasalamin sa modyul?`,
+    ];
+
+    const mediumScenarios = [
+      `May sitwasyong iniharap tungkol sa ${topicLabel}. Aling sagot ang nagpapakita ng pinakamahusay na interpretasyon?`,
+      `Dapat pumili ng pinakamainam na paglalapat ng ${topicLabel} ang isang mag-aaral. Aling opsyon ang pinakanatatanggol?`,
+      `Sa isang maikling kaso tungkol sa ${topicLabel}, aling sagot ang pinakamahusay na sumusunod sa pangangatwiran ng materyal?`,
+    ];
+
+    const hardScenarios = [
+      `Sa isang makatotohanang sitwasyon kung saan mahalaga ang ${clause.toLowerCase()}, aling kilos o pasya ang pinakamahusay na sinusuportahan ng modyul?`,
+      `May kinakaharap na sitwasyon ang isang tagapagpasya na may kinalaman sa ${topicLabel}. Aling sagot ang pinakamainam na paglalapat ng aralin?`,
+      `Kung ang pangunahing usapin ay ${topicLabel}, aling opsyon ang nagpapakita ng pinakamatibay na inilapat na pangangatwiran?`,
+    ];
+
+    const bank = difficulty === 'easy' ? easyScenarios : difficulty === 'hard' ? hardScenarios : mediumScenarios;
+    return bank[Math.floor(Math.random() * bank.length)];
+  }
+
+  if (mode === 'Class') {
     const bank = [
       `A quick class-prep item mentions ${topicLabel}. Which idea should come to mind first?`,
       `A student prepares for class and sees ${topicLabel}. Which response best fits the lesson?`,
@@ -499,10 +650,28 @@ const sentenceToScenario = (sentence, topic, difficulty = 'medium', mode = 'Boar
   return bank[Math.floor(Math.random() * bank.length)];
 };
 
-const buildFlashcardFront = (topic, difficulty = 'medium', mode = 'Board') => {
+const buildFlashcardFront = (topic, difficulty = 'medium', mode = 'Board', language = 'en') => {
   const label = String(topic || 'the topic').toLowerCase();
 
-  if (mode === 'Class Prep') {
+  if (isTagalog(language)) {
+    if (mode === 'Class') {
+      const bank = [
+        `Ano ang ${label} ayon sa modyul?`,
+        `Ano ang sinasabi ng modyul tungkol sa ${label}?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+
+    if (mode === 'Quiz') {
+      const bank = [
+        `Ano ang pangunahing ideya ng ${label} sa modyul?`,
+        `Ayon sa modyul, alin ang pinakamahusay na paliwanag sa ${label}?`,
+      ];
+      return bank[Math.floor(Math.random() * bank.length)];
+    }
+  }
+
+  if (mode === 'Class') {
     const bank = [
       `What is ${label} according to the module?`,
       `What does the module say about ${label}?`,
@@ -560,9 +729,25 @@ const getKeyClause = (sentence, maxWords = 10) => {
     .trim();
 };
 
-const makeAppliedOption = (sentence, style = 'best') => {
+const makeAppliedOption = (sentence, style = 'best', language = 'en') => {
   const clause = getKeyClause(sentence);
   if (!clause) return optionFromSentence(sentence);
+
+  if (isTagalog(language)) {
+    if (style === 'best') {
+      return `Piliin ang sagot na isinasaalang-alang ang ${clause.charAt(0).toLowerCase()}${clause.slice(1)} bago magpasya.`;
+    }
+
+    if (style === 'misread') {
+      return `Ipagpalagay na ang ${clause.toLowerCase()} ang laging batayan kahit hindi ito sinusuportahan ng kabuuang konteksto.`;
+    }
+
+    if (style === 'overreach') {
+      return `Ipalapat nang masyadong malawak ang ${clause.toLowerCase()} at balewalain ang mga hangganan o kundisyong ipinahihiwatig ng aralin.`;
+    }
+
+    return `Ibase ang sagot sa kaugnay ngunit ibang ideya, na para bang mas payak ang kahulugan ng ${clause.toLowerCase()} kaysa sa ipinahihiwatig ng modyul.`;
+  }
 
   if (style === 'best') {
     return `Prioritize the response that accounts for ${clause.charAt(0).toLowerCase()}${clause.slice(1)} before making the decision.`;
@@ -602,13 +787,20 @@ const pickDistractors = (target, pool, count = 3) => {
   return uniqueBy(scored, s => normalizeForCompare(s)).slice(0, count);
 };
 
-const buildWrongOptions = (correct) => {
-  const generic = [
-    'It overgeneralizes the concept beyond the material scope.',
-    'It reverses the causal direction implied in the material.',
-    'It confuses a related term with the main concept.',
-    'It applies the concept to a context not supported by the text.'
-  ];
+const buildWrongOptions = (correct, language = 'en') => {
+  const generic = isTagalog(language)
+    ? [
+        'Sobra ang paglalahat nito lampas sa saklaw ng materyal.',
+        'Binabaligtad nito ang ugnayang ipinahihiwatig ng materyal.',
+        'Pinagpapalit nito ang kaugnay na termino at ang pangunahing konsepto.',
+        'Inilalapat nito ang konsepto sa kontekstong hindi sinusuportahan ng teksto.'
+      ]
+    : [
+        'It overgeneralizes the concept beyond the material scope.',
+        'It reverses the causal direction implied in the material.',
+        'It confuses a related term with the main concept.',
+        'It applies the concept to a context not supported by the text.'
+      ];
   return generic.filter(opt => opt.toLowerCase() !== correct.toLowerCase()).slice(0, 3);
 };
 
@@ -642,6 +834,63 @@ const sanitizeExplanation = (value, fallbackTopic = 'the concept') => {
   return /[.!?]$/.test(text) ? text : `${text}.`;
 };
 
+const buildCorrectExplanation = (topic, language = 'en') => {
+  const cleanTopic = cleanSentenceText(topic || 'this concept') || 'this concept';
+  return isTagalog(language)
+    ? `Ito ang tamang sagot dahil ito ang pinakatumpak na tumutugma sa paliwanag ng modyul tungkol sa ${cleanTopic}.`
+    : `This is correct because it most accurately matches the module's explanation of ${cleanTopic}.`;
+};
+
+const buildWrongExplanation = (topic, variant = 0, language = 'en') => {
+  const cleanTopic = cleanSentenceText(topic || 'this concept') || 'this concept';
+
+  if (isTagalog(language)) {
+    const bank = [
+      `Mali ito dahil masyado itong malawak at hindi nito isinasaalang-alang ang tiyak na kundisyon ng ${cleanTopic}.`,
+      `Mali ito dahil pinagpapalit nito ang ${cleanTopic} sa isang magkaugnay ngunit ibang ideya.`,
+      `Mali ito dahil inilalapat nito ang ${cleanTopic} sa paraang hindi sinusuportahan ng modyul.`,
+    ];
+    return bank[variant % bank.length];
+  }
+
+  const bank = [
+    `This is wrong because it is too broad and misses the key condition tied to ${cleanTopic}.`,
+    `This is wrong because it confuses ${cleanTopic} with a related but different idea.`,
+    `This is wrong because it applies ${cleanTopic} in a way the module does not support.`,
+  ];
+  return bank[variant % bank.length];
+};
+
+const buildOptionExplanations = (options = [], correctAnswer = 0, topic = 'the concept', language = 'en', providedCorrectExplanation = '') =>
+  options.map((_, index) => (
+    index === correctAnswer
+      ? sanitizeExplanation(providedCorrectExplanation || buildCorrectExplanation(topic, language), topic)
+      : sanitizeExplanation(buildWrongExplanation(topic, index, language), topic)
+  ));
+
+const sanitizeOptionExplanations = (
+  value,
+  options = [],
+  correctAnswer = 0,
+  topic = 'the concept',
+  language = 'en',
+  correctExplanation = '',
+) => {
+  if (!Array.isArray(options) || options.length !== 4) return [];
+
+  if (!Array.isArray(value) || value.length !== options.length) {
+    return buildOptionExplanations(options, correctAnswer, topic, language, correctExplanation);
+  }
+
+  return value.map((entry, index) => {
+    const fallback = index === correctAnswer
+      ? (correctExplanation || buildCorrectExplanation(topic, language))
+      : buildWrongExplanation(topic, index, language);
+    const cleaned = cleanSentenceText(entry).replace(/\s+/g, ' ').trim();
+    return cleaned ? sanitizeExplanation(cleaned, topic) : sanitizeExplanation(fallback, topic);
+  });
+};
+
 const conceptFingerprint = (question, explanation = '') => {
   const normalized = normalizeConceptKey(`${question} ${explanation}`);
   return normalized
@@ -662,7 +911,20 @@ const finalizeMcqs = (items = [], sourceText = '', mode = 'Quiz', limit = 24) =>
       ? item.options.map((option) => sanitizeOptionText(option)).filter(Boolean)
       : [];
     const correctAnswer = Number.isInteger(item?.correctAnswer) ? item.correctAnswer : -1;
-    const explanation = sanitizeExplanation(item?.explanation, getTopicPhrase(question));
+    const topic = getTopicPhrase(question);
+    const language = detectContentLanguage(`${question} ${options.join(' ')}`, topic);
+    const explanation = sanitizeExplanation(
+      item?.correctExplanation || item?.explanation || buildCorrectExplanation(topic, language),
+      topic,
+    );
+    const optionExplanations = sanitizeOptionExplanations(
+      item?.optionExplanations,
+      options,
+      correctAnswer,
+      topic,
+      language,
+      explanation,
+    );
 
     if (!question || options.length !== 4 || correctAnswer < 0 || correctAnswer > 3) return;
     if (new Set(options.map((option) => normalizeForCompare(option))).size !== 4) return;
@@ -684,6 +946,8 @@ const finalizeMcqs = (items = [], sourceText = '', mode = 'Quiz', limit = 24) =>
       difficulty: item?.difficulty || 'medium',
       type: 'mcq',
       explanation,
+      correctExplanation: explanation,
+      optionExplanations,
     });
   });
 
@@ -725,12 +989,13 @@ const finalizeFlashcards = (cards = [], limit = 12) => {
 };
 
 const buildExamQuestion = (sentence, difficulty, idx, pool, profile) => {
-  const correct = makeAppliedOption(sentence, 'best');
+  const language = profile.language || detectContentLanguage(pool.join(' '));
+  const correct = makeAppliedOption(sentence, 'best', language);
   const distractorsRaw = pickDistractors(sentence, pool, 3);
   const generatedDistractors = [
-    makeAppliedOption(distractorsRaw[0] || sentence, 'misread'),
-    makeAppliedOption(distractorsRaw[1] || sentence, 'overreach'),
-    makeAppliedOption(distractorsRaw[2] || sentence, 'confuse'),
+    makeAppliedOption(distractorsRaw[0] || sentence, 'misread', language),
+    makeAppliedOption(distractorsRaw[1] || sentence, 'overreach', language),
+    makeAppliedOption(distractorsRaw[2] || sentence, 'confuse', language),
   ];
   const distractors = uniqueBy(generatedDistractors, (option) => normalizeForCompare(option))
     .filter((option) => normalizeForCompare(option) !== normalizeForCompare(correct));
@@ -739,7 +1004,7 @@ const buildExamQuestion = (sentence, difficulty, idx, pool, profile) => {
   }
   const { options, correctAnswer } = shuffleOptions([correct, ...distractors], 0);
   const topic = getTopicPhrase(sentence);
-  const stem = sentenceToScenario(sentence, topic, difficulty, profile.mode);
+  const stem = sentenceToScenario(sentence, topic, difficulty, profile.mode, language);
   if (!isQualityMcq(stem, options, pool.join(' '), profile.mode)) {
     return null;
   }
@@ -750,13 +1015,22 @@ const buildExamQuestion = (sentence, difficulty, idx, pool, profile) => {
     correctAnswer,
     difficulty,
     type: 'mcq',
-    explanation: `The correct answer best matches the module's intended meaning about ${topic}.`
+    explanation: buildCorrectExplanation(topic, language),
+    correctExplanation: buildCorrectExplanation(topic, language),
+    optionExplanations: buildOptionExplanations(
+      options,
+      correctAnswer,
+      topic,
+      language,
+      buildCorrectExplanation(topic, language),
+    ),
   };
 };
 
 // Generate difficulty-specific, exam-style questions
 const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
   const profile = normalizeGenerationOptions(generationOptions);
+  const language = generationOptions.language || detectContentLanguage(text, generationOptions.title);
   const cleanText = stripPdfNoise(text)
     .replace(/^[^\n]*(?:Property of|STI|student|confidential|©).*$/gim, '')
     .replace(/^\s*-?\s*\d+\s*-?\s*$/gm, '')
@@ -770,7 +1044,7 @@ const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
   const sentences = uniqueBy(sentenceParts(cleanText), (s) => s.toLowerCase());
   if (sentences.length === 0) return [];
 
-  const conceptDetails = buildConceptDetails(cleanText, extractCandidateConcepts(cleanText))
+  const conceptDetails = buildConceptDetails(cleanText, extractCandidateConcepts(cleanText), language)
     .map((entry) => {
       const [title, detail] = String(entry).split(/:\s+(.+)/);
       return {
@@ -780,7 +1054,7 @@ const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
     })
     .filter((entry) => entry.title && entry.detail);
 
-  if (profile.mode === 'Class Prep' || profile.mode === 'Quiz') {
+  if (profile.mode === 'Class' || profile.mode === 'Quiz') {
     const directSource = conceptDetails.length > 0
       ? conceptDetails
       : sentences.slice(0, 12).map((sentence) => ({
@@ -792,7 +1066,7 @@ const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
       .map((entry, index) => {
         const pool = directSource.filter((_, poolIndex) => poolIndex !== index);
         const difficulty = mapDifficultyLabel(profile.difficulty, index, Math.max(directSource.length, 1));
-        return buildDirectQuestion(entry.title, entry.detail, pool, difficulty, profile.mode);
+        return buildDirectQuestion(entry.title, entry.detail, pool, difficulty, profile.mode, language);
       })
       .filter(Boolean);
 
@@ -840,6 +1114,7 @@ const generateMultipleChoiceQuestions = (text, generationOptions = {}) => {
 
 const buildStudyFlashcards = (text, keyConcepts = [], generationOptions = {}) => {
   const profile = normalizeGenerationOptions(generationOptions);
+  const language = generationOptions.language || detectContentLanguage(text, generationOptions.title);
   const cards = [];
   const cleaned = stripPdfNoise(text);
   const sentences = sentenceParts(cleaned);
@@ -856,10 +1131,12 @@ const buildStudyFlashcards = (text, keyConcepts = [], generationOptions = {}) =>
         ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(supportingSentence)), 180)
         : detail?.trim()
           ? shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(detail.trim())), 180)
-          : `Apply the key point about ${cleanTitle.toLowerCase()} as presented in the module.`;
+          : isTagalog(language)
+            ? `Iugnay ang pangunahing punto tungkol sa ${cleanTitle.toLowerCase()} batay sa paglalahad ng modyul.`
+            : `Apply the key point about ${cleanTitle.toLowerCase()} as presented in the module.`;
       const difficulty = mapDifficultyLabel(profile.difficulty, index, 12);
-      const front = buildFlashcardFront(cleanTitle, difficulty, profile.mode);
-      if ((profile.mode !== 'Class Prep' && isLikelyRecallPrompt(front)) || hasLongSourceFragment(front, cleaned)) return;
+      const front = buildFlashcardFront(cleanTitle, difficulty, profile.mode, language);
+      if ((profile.mode !== 'Class' && isLikelyRecallPrompt(front)) || hasLongSourceFragment(front, cleaned)) return;
       cards.push({
         front,
         back: cleanDetail,
@@ -872,8 +1149,8 @@ const buildStudyFlashcards = (text, keyConcepts = [], generationOptions = {}) =>
     const topic = getTopicPhrase(sentence);
     const highYieldAnswer = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(sentence)), 180);
     const difficulty = mapDifficultyLabel(profile.difficulty, index, 12);
-    const front = buildFlashcardFront(topic, difficulty, profile.mode);
-    if ((profile.mode !== 'Class Prep' && isLikelyRecallPrompt(front)) || hasLongSourceFragment(front, cleaned)) return;
+    const front = buildFlashcardFront(topic, difficulty, profile.mode, language);
+    if ((profile.mode !== 'Class' && isLikelyRecallPrompt(front)) || hasLongSourceFragment(front, cleaned)) return;
     cards.push({
       front,
       back: highYieldAnswer,
@@ -1224,17 +1501,19 @@ const generateFallbackQuiz = (text) => {
 const processWithAI = async (text, generationOptions = {}) => {
   const profile = normalizeGenerationOptions(generationOptions);
   const cleaned = stripPdfNoise(text);
+  const language = detectContentLanguage(cleaned, generationOptions.title);
+  const generationContext = { ...profile, language, title: generationOptions.title };
 
   if (!openai) {
     console.warn('OpenAI API key not configured - generating quiz using local method');
-    const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, profile);
+    const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, generationContext);
     const summary = summarizeLocally(cleaned);
-    const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned));
+    const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned), language);
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, profile), 12),
+      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12),
       quizQuestions,
       aiAvailable: false
     };
@@ -1252,7 +1531,7 @@ const processWithAI = async (text, generationOptions = {}) => {
 
     const quizResponse = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: `${buildQuizPrompt(profile)}\n\n${cleaned.slice(0, 4000)}` }]
+      messages: [{ role: 'user', content: `${buildQuizPrompt(generationContext)}\n\n${cleaned.slice(0, 4000)}` }]
     });
 
     let quizData;
@@ -1268,7 +1547,7 @@ const processWithAI = async (text, generationOptions = {}) => {
 
         quizData.questions = finalizeMcqs(
           (quizData.questions || [])
-          .filter((q) => isQualityMcq(q.question, q.options, cleaned))
+          .filter((q) => isQualityMcq(q.question, q.options, cleaned, profile.mode))
           .map((q, idx) => ({
             ...q,
             difficulty: mapDifficultyLabel(profile.difficulty, idx, quizData.questions.length || 1),
@@ -1294,27 +1573,28 @@ const processWithAI = async (text, generationOptions = {}) => {
 
     const conceptDetails = buildConceptDetails(
       cleaned,
-      keyConcepts.length > 0 ? keyConcepts : extractCandidateConcepts(cleaned)
+      keyConcepts.length > 0 ? keyConcepts : extractCandidateConcepts(cleaned),
+      language
     );
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, profile), 12),
+      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12),
       quizQuestions: quizData.questions || [],
       aiAvailable: true
     };
   } catch (err) {
     console.error('AI Processing Error:', err.message);
     console.log('Falling back to local quiz generation...');
-    const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, profile);
+    const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, generationContext);
     const summary = summarizeLocally(cleaned);
-    const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned));
+    const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned), language);
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, profile), 12),
+      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12),
       quizQuestions,
       aiAvailable: false,
       error: formatOpenAIError(err)
@@ -1373,7 +1653,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 
     // Clean PDF noise early so everything downstream uses the important content.
     const cleanedText = stripPdfNoise(text);
-    const aiResult = await processWithAI(cleanedText, { mode, difficulty, format });
+    const aiResult = await processWithAI(cleanedText, { title, mode, difficulty, format });
     const extractionWarning = detectExtractionWarning(cleanedText, pageCount);
 
     const module = new Module({
@@ -1447,7 +1727,7 @@ router.post('/regenerate-all', auth, async (req, res) => {
         continue;
       }
 
-      const aiResult = await processWithAI(module.originalText, req.body || {});
+      const aiResult = await processWithAI(module.originalText, { ...req.body, title: module.title });
 
       module.summary = aiResult.summary;
       module.keyConcepts = aiResult.keyConcepts;
@@ -1582,7 +1862,7 @@ router.post('/:id/regenerate-quiz', auth, async (req, res) => {
       return res.status(400).json({ message: 'No original content to generate quiz from' });
     }
 
-    const aiResult = await processWithAI(module.originalText, req.body || {});
+    const aiResult = await processWithAI(module.originalText, { ...req.body, title: module.title });
     
     module.summary = aiResult.summary;
     module.keyConcepts = aiResult.keyConcepts;

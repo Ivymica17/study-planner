@@ -89,7 +89,7 @@ const extractTopicWords = (text) =>
 const buildAppliedFront = (topic, detail, difficulty = 'medium', mode = 'Board') => {
   const label = normalizeText(topic).toLowerCase();
 
-  if (mode === 'Class Prep') {
+  if (mode === 'Class') {
     const bank = [
       `What is ${label} according to the module?`,
       `What does the module say about ${label}?`,
@@ -225,7 +225,7 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
         const moduleBack = supportingSentence || detail;
         const front = buildAppliedFront(title, moduleBack, difficulty, profile.mode);
         const back = buildModuleBasedBack(moduleBack);
-        if ((profile.mode !== 'Class Prep' && isRecallStyle(front)) || hasSourceMirror(front, text)) return;
+        if ((profile.mode !== 'Class' && isRecallStyle(front)) || hasSourceMirror(front, text)) return;
         flashcards.push({
           front,
           back,
@@ -244,7 +244,7 @@ router.post('/:moduleId/generate', auth, async (req, res) => {
         if (sentence) {
           const difficulty = mapDifficultyLabel(profile.difficulty, i, 12);
           const prompt = buildAppliedFront(shorten(sentence, 48), sentence, difficulty, profile.mode);
-          if ((profile.mode !== 'Class Prep' && isRecallStyle(prompt)) || hasSourceMirror(prompt, text)) continue;
+          if ((profile.mode !== 'Class' && isRecallStyle(prompt)) || hasSourceMirror(prompt, text)) continue;
           flashcards.push({
             front: prompt,
             back: buildModuleBasedBack(sentence),

@@ -1,0 +1,38 @@
+
+> study-planner-client@1.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m2304[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3000[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m10:06:16 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m10:13:45 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m10:29:33 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModuleDetail.jsx, /src/index.css[22m
+[2m10:29:52 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Flashcards.jsx, /src/index.css[22m
+[2m11:44:26 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m11:44:34 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StudyArea.jsx, /src/index.css[22m
+[2m11:44:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m11:44:48 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudySidebar.jsx, /src/index.css[22m
+[2m11:50:58 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModuleDetail.jsx, /src/index.css[22m
+[2m11:51:34 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StudyArea.jsx, /src/index.css[22m
+[2m11:51:42 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m11:51:49 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudySidebar.jsx, /src/index.css[22m
+[2m11:54:49 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GenerationSettings.jsx, /src/index.css[22m
+[2m12:04:16 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m12:04:21 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModuleDetail.jsx, /src/index.css[22m
+[2m12:25:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m12:27:38 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudyToolbar.jsx, /src/index.css[22m
+[2m12:29:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudyToolbar.jsx, /src/index.css[22m
+[2m12:32:18 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudyToolbar.jsx, /src/index.css[22m
+[2m12:33:10 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudyToolbar.jsx, /src/index.css[22m
+[2m12:39:39 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m12:41:31 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfPageStage.jsx, /src/index.css[22m
+[2m1:00:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GenerationSettings.jsx, /src/index.css[22m
+[2m1:00:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m1:00:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModuleDetail.jsx, /src/index.css[22m
+[2m1:06:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m1:06:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModuleDetail.jsx, /src/index.css[22m
+[2m1:14:30 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m1:35:32 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m

@@ -1,0 +1,36 @@
+
+> study-planner-client@1.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m6019[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3000[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m7:26:33 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/study-area/PdfStudyWorkspace.jsx, /src/components/study-area/StudyToolbar.jsx, /src/components/study-area/PdfPageStage.jsx[22m
+[2m7:26:33 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m7:26:33 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m7:26:33 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m7:30:28 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m7:31:19 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m7:32:07 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m7:32:15 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m7:32:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m7:32:36 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ModulesWorkspaceClean.jsx, /src/index.css[22m
+[2m7:39:21 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GenerationSettings.jsx, /src/index.css[22m
+[2m7:41:26 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m7:41:42 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m7:41:54 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m7:42:37 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m7:42:56 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/ModulesWorkspace.jsx[22m
+[2m7:43:53 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m7:44:06 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/QuizClean.jsx, /src/index.css[22m
+[2m8:03:00 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:03:11 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:03:16 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/StudyArea.jsx, /src/index.css[22m
+[2m8:10:42 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:11:04 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:11:12 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:11:21 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:11:38 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m8:12:13 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m

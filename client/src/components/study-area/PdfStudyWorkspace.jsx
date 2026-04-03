@@ -42,12 +42,12 @@ function EmptyWorkspace({ hasModules, onBrowseModules }) {
             <div className="mt-1">Select text and color-code important ideas.</div>
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm">
-            <div className="font-semibold text-slate-800">Pen Tools</div>
-            <div className="mt-1">Sketch diagrams, circle terms, and erase cleanly.</div>
+            <div className="font-semibold text-slate-800">AI Actions</div>
+            <div className="mt-1">Turn a saved highlight into quiz questions.</div>
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm">
-            <div className="font-semibold text-slate-800">Saved Progress</div>
-            <div className="mt-1">Return to the same page with your notes intact.</div>
+            <div className="font-semibold text-slate-800">Pen Tools</div>
+            <div className="mt-1">Sketch diagrams, circle terms, and erase cleanly.</div>
           </div>
         </div>
         {!hasModules && (
@@ -90,6 +90,12 @@ export default function PdfStudyWorkspace({
   const [pdfFileUrl, setPdfFileUrl] = useState('');
   const [pdfError, setPdfError] = useState('');
   const [highlightRedoByPage, setHighlightRedoByPage] = useState({});
+  const [selectedHighlightId, setSelectedHighlightId] = useState('');
+  const [selectedInsightOutput, setSelectedInsightOutput] = useState('quiz');
+  const [highlightInsights, setHighlightInsights] = useState(null);
+  const [highlightInsightsLoading, setHighlightInsightsLoading] = useState(false);
+  const [highlightInsightsError, setHighlightInsightsError] = useState('');
+  const [highlightInsightsWarning, setHighlightInsightsWarning] = useState('');
 
   const pdfRequestUrl = useMemo(
     () => buildPdfSrc(selectedModuleId, selectedModule?.fileType),
@@ -98,6 +104,26 @@ export default function PdfStudyWorkspace({
   const currentPage = clamp(workspaceState.currentPage || 1, 1, numPages || 1);
   const currentDrawingState = getPageDrawingState(workspaceState, currentPage);
   const currentHighlights = getPageHighlights(workspaceState, currentPage);
+  const savedHighlights = useMemo(
+    () =>
+      Object.entries(workspaceState.highlightsByPage || {})
+        .flatMap(([pageNumber, highlights]) =>
+          (highlights || []).map((highlight) => ({
+            ...highlight,
+            pageNumber: Number(pageNumber),
+          })),
+        )
+        .sort((left, right) => (right.createdAt || 0) - (left.createdAt || 0)),
+    [workspaceState.highlightsByPage],
+  );
+  const allHighlightsText = useMemo(
+    () =>
+      savedHighlights
+        .map((highlight) => String(highlight.text || '').trim())
+        .filter(Boolean)
+        .join('\n\n'),
+    [savedHighlights],
+  );
 
   useEffect(() => {
     if (!selectedModuleId) {
@@ -105,6 +131,10 @@ export default function PdfStudyWorkspace({
       setPendingSelection(null);
       setNumPages(0);
       setHighlightRedoByPage({});
+      setSelectedHighlightId('');
+      setHighlightInsights(null);
+      setHighlightInsightsError('');
+      setHighlightInsightsWarning('');
       return;
     }
 
@@ -114,10 +144,32 @@ export default function PdfStudyWorkspace({
     setActiveTool('select');
     setPdfError('');
     setHighlightRedoByPage({});
+    setSelectedHighlightId('');
+    setHighlightInsights(null);
+    setHighlightInsightsError('');
+    setHighlightInsightsWarning('');
     const hasSelectedPdf = Boolean(buildPdfSrc(selectedModuleId, selectedModule?.fileType));
     setDocumentLoading(hasSelectedPdf);
     setPageLoading(hasSelectedPdf);
   }, [selectedModule, selectedModuleId]);
+
+  useEffect(() => {
+    if (savedHighlights.length === 0) {
+      setSelectedHighlightId('');
+      setHighlightInsights(null);
+      return;
+    }
+
+    if (!savedHighlights.some((highlight) => highlight.id === selectedHighlightId)) {
+      setSelectedHighlightId(savedHighlights[0].id);
+    }
+  }, [savedHighlights, selectedHighlightId]);
+
+  useEffect(() => {
+    setHighlightInsights(null);
+    setHighlightInsightsError('');
+    setHighlightInsightsWarning('');
+  }, [selectedHighlightId]);
 
   useEffect(() => {
     if (!selectedModuleId || !initialPage || initialPage < 1) return;
@@ -173,7 +225,10 @@ export default function PdfStudyWorkspace({
 
   useEffect(() => {
     if (!selectedModuleId) return;
-    saveWorkspaceState(selectedModuleId, workspaceState);
+    saveWorkspaceState(selectedModuleId, {
+      ...workspaceState,
+      lastOpenedAt: new Date().toISOString(),
+    });
   }, [selectedModuleId, workspaceState]);
 
   useEffect(() => {
@@ -228,10 +283,9 @@ export default function PdfStudyWorkspace({
 
   const handleAddHighlight = (pageNumber, selection, color) => {
     setHighlightRedoByPage((prev) => ({ ...prev, [pageNumber]: [] }));
-    updatePageHighlights(pageNumber, (current) => [
-      ...current,
-      createHighlightFromSelection(selection, color, highlightStyle),
-    ]);
+    const nextHighlight = createHighlightFromSelection(selection, color, highlightStyle);
+    updatePageHighlights(pageNumber, (current) => [...current, nextHighlight]);
+    setSelectedHighlightId(nextHighlight.id);
   };
 
   const handleApplyHighlight = (color) => {
@@ -242,10 +296,9 @@ export default function PdfStudyWorkspace({
     if (!pendingSelection || pendingSelection.pageNumber !== currentPage) return;
 
     setHighlightRedoByPage((prev) => ({ ...prev, [currentPage]: [] }));
-    updatePageHighlights(currentPage, (current) => [
-      ...current,
-      createHighlightFromSelection(pendingSelection, color, highlightStyle),
-    ]);
+    const nextHighlight = createHighlightFromSelection(pendingSelection, color, highlightStyle);
+    updatePageHighlights(currentPage, (current) => [...current, nextHighlight]);
+    setSelectedHighlightId(nextHighlight.id);
     setPendingSelection(null);
     window.getSelection()?.removeAllRanges();
   };
@@ -305,6 +358,9 @@ export default function PdfStudyWorkspace({
       [pageNumber]: [...(prev[pageNumber] || []), { type: 'remove', highlight: target }],
     }));
     updatePageHighlights(pageNumber, (current) => current.filter((highlight) => highlight.id !== highlightId));
+    if (selectedHighlightId === highlightId) {
+      setSelectedHighlightId('');
+    }
   };
 
   const handleUndoHighlight = () => {
@@ -356,6 +412,42 @@ export default function PdfStudyWorkspace({
     }
   };
 
+  const handleGenerateHighlightInsights = async (output = selectedInsightOutput) => {
+    if (!selectedModuleId || !allHighlightsText) return;
+
+    setSelectedInsightOutput(output);
+    setHighlightInsightsLoading(true);
+    setHighlightInsightsError('');
+    setHighlightInsightsWarning('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/highlight-tools/${selectedModuleId}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token || '',
+        },
+        body: JSON.stringify({
+          text: allHighlightsText,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Failed to generate highlight study tools.');
+      }
+
+      setHighlightInsights(payload);
+      setHighlightInsightsWarning(payload?.warning || '');
+    } catch (error) {
+      console.error('Failed to generate highlight insights:', error);
+      setHighlightInsightsError(error.message || 'Failed to generate highlight study tools.');
+    } finally {
+      setHighlightInsightsLoading(false);
+    }
+  };
+
   const hasPdf = Boolean(pdfRequestUrl);
   const isHighlightToolActive = activeTool === 'highlighter' || activeTool === 'remove-highlight';
   const canUndo = isHighlightToolActive
@@ -366,7 +458,6 @@ export default function PdfStudyWorkspace({
     : Boolean(currentDrawingState.undone?.length);
   const hasHighlights = currentHighlights.length > 0;
   const hasDrawings = currentDrawingState.strokes?.length > 0;
-
   return (
     <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_32px_100px_rgba(15,23,42,0.08)]">
       <div className="flex min-h-[calc(100vh-10rem)] flex-col xl:flex-row">
@@ -408,9 +499,20 @@ export default function PdfStudyWorkspace({
                       </p>
                     )}
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    <div className="font-semibold text-slate-800">Study flow</div>
-                    <div className="mt-1">Select text to highlight, switch to pen to sketch, then come back anytime.</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                      <div className="font-semibold">Saved Highlights</div>
+                      <div className="mt-1">{savedHighlights.length} ready to study</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateHighlightInsights('quiz')}
+                      disabled={savedHighlights.length === 0 || highlightInsightsLoading}
+                      className="flex items-center gap-2 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-800 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span aria-hidden="true">?</span>
+                      <span>Turn Into Quiz</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -451,106 +553,172 @@ export default function PdfStudyWorkspace({
                 onClearHighlights={handleClearHighlights}
               />
 
-              <div className="study-scroll-area relative flex-1 overflow-auto">
-                {(documentLoading || pageLoading) && (
-                  <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-4">
-                    <div className="rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-sm font-medium text-sky-700 shadow-sm">
-                      Rendering your study page...
-                    </div>
+              <div className="flex flex-1 flex-col">
+                {(highlightInsightsLoading || highlightInsightsError || highlightInsightsWarning || highlightInsights) && (
+                  <div className="border-b border-slate-200 bg-white/80 px-4 py-4">
+                    {highlightInsightsLoading && (
+                      <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-700">
+                        Building study material from your saved highlights...
+                      </div>
+                    )}
+
+                    {highlightInsightsError && !highlightInsightsLoading && (
+                      <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {highlightInsightsError}
+                      </div>
+                    )}
+
+                    {highlightInsightsWarning && !highlightInsightsLoading && (
+                      <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        {highlightInsightsWarning}
+                      </div>
+                    )}
+
+                    {highlightInsights && !highlightInsightsLoading && selectedInsightOutput === 'quiz' && (
+                      <div className="mt-3 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Saved Highlights</p>
+                            <h3 className="mt-2 text-lg font-semibold text-slate-900">Turned Into Quiz</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setHighlightInsights(null)}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                          >
+                            Close
+                          </button>
+                        </div>
+                        <div className="mt-4 space-y-3">
+                          {(highlightInsights.quizQuestions || []).map((question, index) => (
+                            <article key={`${question.question}-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                Quiz {index + 1} • {question.difficulty || 'medium'}
+                              </div>
+                              <h4 className="mt-2 text-sm font-semibold leading-6 text-slate-900">{question.question}</h4>
+                              <div className="mt-3 grid gap-2">
+                                {(question.options || []).map((option, optionIndex) => (
+                                  <div
+                                    key={`${option}-${optionIndex}`}
+                                    className={`rounded-xl border px-3 py-2 text-sm ${
+                                      optionIndex === question.correctAnswer
+                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                                        : 'border-slate-200 bg-white text-slate-700'
+                                    }`}
+                                  >
+                                    {option}
+                                  </div>
+                                ))}
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {!pdfError && pdfFileUrl && (
-                  <div className="sticky top-4 z-10 flex justify-center px-4 lg:px-8">
-                    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-2 py-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateWorkspaceState((prev) => ({
-                            ...prev,
-                            zoom: clamp((prev.zoom || 100) - 10, 60, 180),
-                          }))
-                        }
-                        disabled={workspaceState.zoom <= 60}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Zoom out"
-                        title="Zoom out"
-                      >
-                        -
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateWorkspaceState((prev) => ({ ...prev, zoom: 100 }))}
-                        className="min-w-[72px] rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-                        aria-label="Reset zoom"
-                        title="Reset zoom"
-                      >
-                        {workspaceState.zoom}%
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateWorkspaceState((prev) => ({
-                            ...prev,
-                            zoom: clamp((prev.zoom || 100) + 10, 60, 180),
-                          }))
-                        }
-                        disabled={workspaceState.zoom >= 180}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Zoom in"
-                        title="Zoom in"
-                      >
-                        +
-                      </button>
+                <div className="study-scroll-area relative flex-1 overflow-auto">
+                  {(documentLoading || pageLoading) && (
+                    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center p-4">
+                      <div className="rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-sm font-medium text-sky-700 shadow-sm">
+                        Rendering your study page...
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {pdfError ? (
-                  <div className="flex h-full min-h-[420px] items-center justify-center p-8">
-                    <div className="rounded-3xl border border-rose-200 bg-white px-6 py-5 text-sm text-rose-700 shadow-sm">
-                      {pdfError}
+                  {!pdfError && pdfFileUrl && (
+                    <div className="sticky top-4 z-10 flex justify-center px-4 lg:px-8">
+                      <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-2 py-2 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateWorkspaceState((prev) => ({
+                              ...prev,
+                              zoom: clamp((prev.zoom || 100) - 10, 60, 180),
+                            }))
+                          }
+                          disabled={workspaceState.zoom <= 60}
+                          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label="Zoom out"
+                          title="Zoom out"
+                        >
+                          -
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateWorkspaceState((prev) => ({ ...prev, zoom: 100 }))}
+                          className="min-w-[72px] rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                          aria-label="Reset zoom"
+                          title="Reset zoom"
+                        >
+                          {workspaceState.zoom}%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateWorkspaceState((prev) => ({
+                              ...prev,
+                              zoom: clamp((prev.zoom || 100) + 10, 60, 180),
+                            }))
+                          }
+                          disabled={workspaceState.zoom >= 180}
+                          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label="Zoom in"
+                          title="Zoom in"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : pdfFileUrl ? (
-                  <div className="flex min-h-full justify-center px-2 sm:px-4">
-                    <Document
-                      file={pdfFileUrl}
-                      onLoadSuccess={({ numPages: pages }) => {
-                        setNumPages(pages);
-                        setDocumentLoading(false);
-                      }}
-                      onLoadError={(error) => {
-                        console.error('Failed to load PDF:', error);
-                        setPdfError('Failed to load PDF file.');
-                        setDocumentLoading(false);
-                        setPageLoading(false);
-                      }}
-                      loading={null}
-                      className="min-h-full w-full"
-                    >
-                      <PdfPageStage
-                        pageNumber={currentPage}
-                        zoom={workspaceState.zoom}
-                        activeTool={activeTool}
-                        highlights={currentHighlights}
-                        drawingState={currentDrawingState}
-                        brushColor={brushColor}
-                        brushSize={brushSize}
-                        highlightColor={highlightColor}
-                        onSelectionChange={setPendingSelection}
-                        onAddHighlight={handleAddHighlight}
-                        onAddStroke={handleAddStroke}
-                        onRemoveHighlight={handleRemoveHighlight}
-                        onPageRenderSuccess={() => setPageLoading(false)}
-                        onPageRenderError={(error) => {
-                          console.error('Failed to render page:', error);
+                  )}
+
+                  {pdfError ? (
+                    <div className="flex h-full min-h-[420px] items-center justify-center p-8">
+                      <div className="rounded-3xl border border-rose-200 bg-white px-6 py-5 text-sm text-rose-700 shadow-sm">
+                        {pdfError}
+                      </div>
+                    </div>
+                  ) : pdfFileUrl ? (
+                    <div className="flex min-h-full justify-center px-2 sm:px-4">
+                      <Document
+                        file={pdfFileUrl}
+                        onLoadSuccess={({ numPages: pages }) => {
+                          setNumPages(pages);
+                          setDocumentLoading(false);
+                        }}
+                        onLoadError={(error) => {
+                          console.error('Failed to load PDF:', error);
+                          setPdfError('Failed to load PDF file.');
+                          setDocumentLoading(false);
                           setPageLoading(false);
                         }}
-                      />
-                    </Document>
-                  </div>
-                ) : null}
+                        loading={null}
+                        className="min-h-full w-full"
+                      >
+                        <PdfPageStage
+                          pageNumber={currentPage}
+                          zoom={workspaceState.zoom}
+                          activeTool={activeTool}
+                          highlights={currentHighlights}
+                          drawingState={currentDrawingState}
+                          brushColor={brushColor}
+                          brushSize={brushSize}
+                          highlightColor={highlightColor}
+                          onSelectionChange={setPendingSelection}
+                          onAddHighlight={handleAddHighlight}
+                          onAddStroke={handleAddStroke}
+                          onRemoveHighlight={handleRemoveHighlight}
+                          onPageRenderSuccess={() => setPageLoading(false)}
+                          onPageRenderError={(error) => {
+                            console.error('Failed to render page:', error);
+                            setPageLoading(false);
+                          }}
+                        />
+                      </Document>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </>
           )}

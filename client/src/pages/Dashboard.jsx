@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loadWorkspaceState } from '../utils/studyWorkspace';
+import { loadQuizSession } from '../utils/quizSession';
 
 export default function Dashboard() {
   const [modules, setModules] = useState([]);
@@ -121,10 +123,98 @@ export default function Dashboard() {
   
   const goalProgress = studyGoal ? (studyGoal.completedToday / studyGoal.dailyGoal * 100) : 0;
   const recentModules = modules.slice(0, 3);
+  const lastStudiedModule = modules
+    .map((module) => ({
+      module,
+      workspace: loadWorkspaceState(module._id),
+    }))
+    .filter(({ workspace }) => workspace.lastOpenedAt)
+    .sort((a, b) => new Date(b.workspace.lastOpenedAt) - new Date(a.workspace.lastOpenedAt))[0];
+  const quizInProgress = modules
+    .map((module) => ({
+      module,
+      session: loadQuizSession(module._id),
+    }))
+    .filter(({ session }) => session?.inProgress)
+    .sort((a, b) => new Date(b.session.updatedAt) - new Date(a.session.updatedAt))[0];
+  const primaryCta = quizInProgress
+    ? {
+        label: 'Continue Last Session',
+        helper: `Pick up your quiz in ${quizInProgress.module.title}.`,
+        action: () => navigate(`/quiz/${quizInProgress.module._id}`),
+      }
+    : lastStudiedModule
+      ? {
+          label: 'Start Studying',
+          helper: `Resume ${lastStudiedModule.module.title} from page ${lastStudiedModule.workspace.currentPage || 1}.`,
+          action: () =>
+            navigate(
+              `/study-area?module=${lastStudiedModule.module._id}&page=${lastStudiedModule.workspace.currentPage || 1}`,
+            ),
+        }
+      : {
+          label: 'Start Studying',
+          helper: 'Open your modules workspace and jump into your next study block.',
+          action: () => navigate('/modules'),
+        };
 
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
+
+      <div className="mb-8 overflow-hidden rounded-3xl border border-sky-200 bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.32),_transparent_38%),linear-gradient(135deg,_#0f172a_0%,_#1d4ed8_55%,_#38bdf8_100%)] p-8 text-white shadow-[0_24px_80px_rgba(29,78,216,0.28)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-sky-100">Study Flow</p>
+        <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-semibold tracking-tight">Reduce the setup. Get straight into learning.</h2>
+            <p className="mt-3 text-base text-sky-100">{primaryCta.helper}</p>
+          </div>
+          <button
+            onClick={primaryCta.action}
+            className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-4 text-base font-semibold text-sky-900 transition hover:bg-sky-50"
+          >
+            {primaryCta.label}
+          </button>
+        </div>
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <button
+            onClick={() => {
+              if (lastStudiedModule) {
+                navigate(
+                  `/study-area?module=${lastStudiedModule.module._id}&page=${lastStudiedModule.workspace.currentPage || 1}`,
+                );
+                return;
+              }
+              navigate('/study-area');
+            }}
+            className="rounded-2xl border border-white/25 bg-white/10 px-5 py-4 text-left transition hover:bg-white/15"
+          >
+            <p className="text-sm font-semibold text-white">Resume last module</p>
+            <p className="mt-1 text-sm text-sky-100">
+              {lastStudiedModule
+                ? `${lastStudiedModule.module.title} • Page ${lastStudiedModule.workspace.currentPage || 1}`
+                : 'Open your study area and choose a module to continue.'}
+            </p>
+          </button>
+          <button
+            onClick={() => {
+              if (quizInProgress) {
+                navigate(`/quiz/${quizInProgress.module._id}`);
+                return;
+              }
+              navigate('/quiz-stats');
+            }}
+            className="rounded-2xl border border-white/25 bg-white/10 px-5 py-4 text-left transition hover:bg-white/15"
+          >
+            <p className="text-sm font-semibold text-white">Continue quiz (in progress)</p>
+            <p className="mt-1 text-sm text-sky-100">
+              {quizInProgress
+                ? `${quizInProgress.module.title} • ${Object.keys(quizInProgress.session.answers || {}).length} answered so far`
+                : 'No quiz is currently in progress. Review your results and start another one anytime.'}
+            </p>
+          </button>
+        </div>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">

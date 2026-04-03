@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { clearQuizSession, loadQuizSession, saveQuizSession } from '../utils/quizSession';
 
 export default function QuizClean() {
   const { user, loading: authLoading } = useAuth();
@@ -17,6 +18,24 @@ export default function QuizClean() {
   const [expanded, setExpanded] = useState({});
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
+
+  const getDifficultyBadge = (difficulty) => {
+    if (difficulty === 'easy') return 'bg-emerald-100 text-emerald-800';
+    if (difficulty === 'medium') return 'bg-amber-100 text-amber-800';
+    return 'bg-rose-100 text-rose-800';
+  };
+
+  const getOptionExplanations = (question) => {
+    if (Array.isArray(question.optionExplanations) && question.optionExplanations.length === question.options.length) {
+      return question.optionExplanations;
+    }
+
+    return question.options.map((_, index) => (
+      index === question.correctAnswer
+        ? (question.correctExplanation || question.explanation || 'This answer best matches the module.')
+        : 'This choice does not fully match the module\'s explanation, condition, or proper application.'
+    ));
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -44,6 +63,19 @@ export default function QuizClean() {
   }, [id, authLoading]);
 
   useEffect(() => {
+    if (!module || submitted) return;
+
+    const savedSession = loadQuizSession(id);
+    if (!savedSession) return;
+
+    setAnswers(savedSession.answers || {});
+    setSelectedDifficulty(savedSession.selectedDifficulty || null);
+    setFilteredQuestions(savedSession.filteredQuestions || []);
+    setTimeLimit(savedSession.timeLimit ?? null);
+    setTimeRemaining(savedSession.timeRemaining ?? null);
+  }, [id, module, submitted]);
+
+  useEffect(() => {
     if (timeRemaining === null || timeRemaining === Infinity || submitted) return;
 
     const timer = setInterval(() => {
@@ -58,6 +90,26 @@ export default function QuizClean() {
 
     return () => clearInterval(timer);
   }, [timeRemaining, submitted]);
+
+  useEffect(() => {
+    if (!module || submitted || timeRemaining === null) {
+      if (submitted) {
+        clearQuizSession(id);
+      }
+      return;
+    }
+
+    const questionsToPersist = filteredQuestions.length > 0 ? filteredQuestions : (module.quizQuestions || []);
+    saveQuizSession(id, {
+      moduleId: id,
+      moduleTitle: module.title,
+      answers,
+      selectedDifficulty,
+      filteredQuestions: questionsToPersist,
+      timeLimit,
+      timeRemaining,
+    });
+  }, [answers, filteredQuestions, id, module, selectedDifficulty, submitted, timeLimit, timeRemaining]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -76,6 +128,7 @@ export default function QuizClean() {
       }
       setFilteredQuestions(filtered);
     } else {
+      setSelectedDifficulty(null);
       setFilteredQuestions(all);
     }
     setTimeLimit(minutes);
@@ -107,6 +160,7 @@ export default function QuizClean() {
         setResult(data);
         setSubmitted(true);
         setTimeLimit(null);
+        clearQuizSession(id);
       }
     } catch (err) {
       console.error('Error submitting quiz:', err);
@@ -114,6 +168,7 @@ export default function QuizClean() {
   };
 
   const resetQuiz = () => {
+    clearQuizSession(id);
     setSubmitted(false);
     setAnswers({});
     setResult(null);
@@ -296,6 +351,7 @@ export default function QuizClean() {
           const isCorrect = submitted && q.correctAnswer === selectedAnswer;
           const isWrong = submitted && isSelected && q.correctAnswer !== selectedAnswer;
           const isExpanded = expanded[qIndex];
+          const optionExplanations = getOptionExplanations(q);
 
           return (
             <div
@@ -314,6 +370,11 @@ export default function QuizClean() {
                     {submitted && isCorrect ? '✓' : submitted && isWrong ? '✕' : qIndex + 1}
                   </span>
                   <h3 className="font-semibold text-lg text-gray-800">Question {qIndex + 1}</h3>
+                  {q.difficulty && (
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${getDifficultyBadge(q.difficulty)}`}>
+                      {q.difficulty}
+                    </span>
+                  )}
                 </div>
                 {submitted && (
                   <button
@@ -377,15 +438,29 @@ export default function QuizClean() {
                   <p className="text-sm text-gray-700">
                     <strong>Correct Answer:</strong> {q.options[q.correctAnswer]}
                   </p>
-                  {q.explanation && (
+                  {(q.correctExplanation || q.explanation) && (
                     <p className="text-sm text-gray-600 mt-2">
-                      <strong>Why:</strong> {q.explanation}
+                      <strong>Why this is correct:</strong> {q.correctExplanation || q.explanation}
                     </p>
                   )}
                   {isWrong && (
                     <p className="text-sm text-red-600 mt-2">
                       <strong>Your Answer:</strong> {q.options[selectedAnswer]}
                     </p>
+                  )}
+                  {optionExplanations.length === q.options.length && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm font-semibold text-gray-700">Why others are wrong:</p>
+                      {q.options.map((option, optionIndex) => {
+                        if (optionIndex === q.correctAnswer) return null;
+                        return (
+                          <div key={`${option}-${optionIndex}`} className="rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                            <span className="font-semibold text-gray-700">{option}</span>
+                            <span className="ml-2">{optionExplanations[optionIndex]}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               )}
@@ -398,7 +473,10 @@ export default function QuizClean() {
         {!submitted ? (
           <>
             <button
-              onClick={() => navigate(`/modules/${id}`)}
+              onClick={() => {
+                clearQuizSession(id);
+                navigate(`/modules/${id}`);
+              }}
               className="px-6 py-3 rounded-lg border text-gray-700 hover:bg-gray-50 transition"
             >
               Cancel

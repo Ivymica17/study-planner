@@ -1,8 +1,8 @@
 const MODE_OPTIONS = [
-  { value: 'Class Prep', label: 'Class Prep' },
+  { value: 'Class', label: 'Class' },
   { value: 'Quiz', label: 'Quiz' },
-  { value: 'College', label: 'College Exam' },
-  { value: 'Board', label: 'Board Exam' },
+  { value: 'College', label: 'College' },
+  { value: 'Board', label: 'Board' },
 ];
 
 const DIFFICULTY_OPTIONS = [

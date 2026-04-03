@@ -23,6 +23,8 @@ const moduleSchema = new mongoose.Schema({
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
     type: { type: String, enum: ['mcq', 'trueFalse'], default: 'mcq' },
     explanation: String,
+    correctExplanation: String,
+    optionExplanations: [String],
     usedCount: { type: Number, default: 0 }
   }],
   usedQuestionIndices: [{ type: Number }], // Track which questions user has already seen

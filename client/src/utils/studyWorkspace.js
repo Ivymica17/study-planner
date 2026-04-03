@@ -33,6 +33,7 @@ export function createEmptyWorkspaceState() {
     zoom: 100,
     highlightsByPage: {},
     drawingsByPage: {},
+    lastOpenedAt: null,
   };
 }
 
@@ -49,6 +50,7 @@ export function loadWorkspaceState(moduleId) {
       ...parsed,
       highlightsByPage: parsed?.highlightsByPage || {},
       drawingsByPage: parsed?.drawingsByPage || {},
+      lastOpenedAt: parsed?.lastOpenedAt || null,
     };
   } catch (error) {
     console.error('Failed to load study workspace state:', error);
@@ -64,6 +66,7 @@ export function saveWorkspaceState(moduleId, state) {
     zoom: state.zoom,
     highlightsByPage: state.highlightsByPage || {},
     drawingsByPage: state.drawingsByPage || {},
+    lastOpenedAt: state.lastOpenedAt || new Date().toISOString(),
   };
 
   localStorage.setItem(getWorkspaceStorageKey(moduleId), JSON.stringify(payload));
