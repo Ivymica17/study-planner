@@ -1,3 +1,5 @@
+import { recordStudyActivity } from './studyWorkspace';
+
 const QUIZ_SESSION_PREFIX = 'quiz-session';
 
 export function getQuizSessionStorageKey(moduleId) {
@@ -23,13 +25,16 @@ export function loadQuizSession(moduleId) {
 export function saveQuizSession(moduleId, session) {
   if (!moduleId) return;
 
+  const updatedAt = new Date().toISOString();
+
   const payload = {
     ...session,
     inProgress: true,
-    updatedAt: new Date().toISOString(),
+    updatedAt,
   };
 
   localStorage.setItem(getQuizSessionStorageKey(moduleId), JSON.stringify(payload));
+  recordStudyActivity(updatedAt);
 }
 
 export function clearQuizSession(moduleId) {

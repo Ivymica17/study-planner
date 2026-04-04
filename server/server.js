@@ -22,6 +22,7 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/auth', authRoutes);
 app.use('/modules', moduleRoutes);
 app.use('/tasks', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 app.use('/goals', goalRoutes);
 app.use('/flashcards', flashcardRoutes);
 app.use('/highlight-tools', highlightToolRoutes);

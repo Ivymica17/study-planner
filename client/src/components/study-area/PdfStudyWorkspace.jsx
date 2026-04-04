@@ -17,6 +17,7 @@ import {
   loadWorkspaceState,
   saveWorkspaceState,
 } from '../../utils/studyWorkspace';
+import { useStudyAssistantContext } from '../../context/StudyAssistantContext';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -75,6 +76,7 @@ export default function PdfStudyWorkspace({
   uploading,
 }) {
   const navigate = useNavigate();
+  const { setStudyContext, clearStudyContext } = useStudyAssistantContext();
   const [numPages, setNumPages] = useState(0);
   const [workspaceState, setWorkspaceState] = useState(createEmptyWorkspaceState());
   const [activeTool, setActiveTool] = useState('select');
@@ -123,6 +125,14 @@ export default function PdfStudyWorkspace({
         .filter(Boolean)
         .join('\n\n'),
     [savedHighlights],
+  );
+  const assistantSourceText = useMemo(
+    () =>
+      String(pendingSelection?.text || '').trim()
+      || allHighlightsText
+      || String(selectedModule?.summary || '').trim()
+      || String(selectedModule?.originalText || '').trim(),
+    [allHighlightsText, pendingSelection?.text, selectedModule?.originalText, selectedModule?.summary],
   );
 
   useEffect(() => {
@@ -230,6 +240,35 @@ export default function PdfStudyWorkspace({
       lastOpenedAt: new Date().toISOString(),
     });
   }, [selectedModuleId, workspaceState]);
+
+  useEffect(() => {
+    setStudyContext({
+      isStudyArea: true,
+      moduleId: selectedModuleId || '',
+      moduleTitle: selectedModule?.title || '',
+      moduleSummary: selectedModule?.summary || '',
+      moduleText: selectedModule?.originalText || '',
+      highlightedText: pendingSelection?.text || '',
+      savedHighlightsText: allHighlightsText,
+      currentPage,
+      assistantSourceText,
+    });
+  }, [
+    allHighlightsText,
+    assistantSourceText,
+    clearStudyContext,
+    currentPage,
+    pendingSelection?.text,
+    selectedModule?.originalText,
+    selectedModule?.summary,
+    selectedModule?.title,
+    selectedModuleId,
+    setStudyContext,
+  ]);
+
+  useEffect(() => () => {
+    clearStudyContext();
+  }, [clearStudyContext]);
 
   useEffect(() => {
     setPendingSelection(null);

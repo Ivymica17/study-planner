@@ -196,18 +196,28 @@ export default function StudyToolbar({
 
           <div>
             <p className="mb-2 text-sm font-medium text-slate-200">Color</p>
-            <div className="grid grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 gap-2.5">
               {HIGHLIGHT_COLORS.map((color) => (
                 <button
                   key={color.value}
                   type="button"
                   onClick={() => onApplyHighlight(color.value)}
-                  className={`h-10 w-10 rounded-full border-4 transition ${
-                    highlightColor === color.value ? 'border-white scale-105' : 'border-transparent'
+                  className={`flex items-center gap-3 rounded-2xl border px-3 py-2 text-left transition ${
+                    highlightColor === color.value
+                      ? 'border-white bg-white/10 scale-[1.02]'
+                      : 'border-white/10 bg-white/5 hover:bg-white/10'
                   } ${hasPendingSelection ? 'shadow-[0_0_0_4px_rgba(255,255,255,0.12)]' : ''}`}
-                  style={{ backgroundColor: color.value }}
-                  title={color.name}
-                />
+                  title={color.meaning ? `${color.name}: ${color.meaning}` : color.name}
+                >
+                  <span
+                    className="h-10 w-10 shrink-0 rounded-full border-4 border-transparent"
+                    style={{ backgroundColor: color.value }}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-white">{color.name}</span>
+                    <span className="block text-xs text-slate-300">{color.meaning || 'General note'}</span>
+                  </span>
+                </button>
               ))}
             </div>
           </div>

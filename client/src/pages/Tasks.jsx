@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Priority color mapping
@@ -21,7 +21,56 @@ export default function Tasks() {
   const [newTask, setNewTask] = useState({ title: '', deadline: '', priority: 'Medium' });
   const [adding, setAdding] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState('');
   const navigate = useNavigate();
+  const addButtonRef = useRef(null);
+
+  const requestWithApiFallback = async (path, options = {}) => {
+    const bases = [''];
+
+    if (typeof window !== 'undefined') {
+      const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      if (isLocalhost) {
+        bases.push('http://localhost:5000');
+      }
+    }
+
+    let lastError = null;
+
+    for (let index = 0; index < bases.length; index += 1) {
+      const base = bases[index];
+      try {
+        const response = await fetch(`${base}${path}`, options);
+        const contentType = response.headers.get('content-type') || '';
+        const shouldTryNextBase =
+          index < bases.length - 1 &&
+          (
+            response.status === 404 ||
+            response.status === 502 ||
+            response.status === 503 ||
+            response.status === 504 ||
+            contentType.includes('text/html')
+          );
+
+        if (shouldTryNextBase) {
+          continue;
+        }
+
+        return response;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error('Network request failed');
+  };
+
+  const handleUnauthorized = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   const fetchTasks = async () => {
     const token = localStorage.getItem('token');
@@ -30,17 +79,24 @@ export default function Tasks() {
       return;
     }
     try {
-      const res = await fetch('/tasks', { headers: { 'x-auth-token': token } });
+      const res = await requestWithApiFallback('/api/tasks', { headers: { 'x-auth-token': token } });
       if (res.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
+        handleUnauthorized();
         return;
       }
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Unable to load tasks right now.');
+      }
+
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : []);
+      setError('');
+      setStatus('');
     } catch (err) {
       console.error('Error fetching tasks:', err);
+      setError(err.message || 'Unable to load tasks right now.');
     } finally {
       setLoading(false);
     }
@@ -58,52 +114,129 @@ export default function Tasks() {
   // Sort by priority (High > Medium > Low)
   const priorityOrder = { High: 0, Medium: 1, Low: 2 };
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    return (priorityOrder[a.priority] || 1) - (priorityOrder[b.priority] || 1);
+    return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
   });
 
   const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!newTask.title) return;
-    setAdding(true);
-
-    const token = localStorage.getItem('token');
-    const res = await fetch('/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': token
-      },
-      body: JSON.stringify(newTask)
-    });
-
-    if (res.ok) {
-      setNewTask({ title: '', deadline: '', priority: 'Medium' });
-      fetchTasks();
+    e?.preventDefault?.();
+    const title = newTask.title.trim();
+    if (!title) {
+      setError('Please enter a task title.');
+      setStatus('');
+      return;
     }
-    setAdding(false);
+
+    setAdding(true);
+    setError('');
+    setStatus('Adding task...');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        handleUnauthorized();
+        return;
+      }
+
+      const res = await requestWithApiFallback('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({ ...newTask, title })
+      });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Unable to add task right now.');
+      }
+
+      if (data?._id) {
+        setTasks((current) => [data, ...current.filter((task) => task._id !== data._id)]);
+      }
+      setNewTask({ title: '', deadline: '', priority: 'Medium' });
+      setStatus('Task added.');
+      fetchTasks();
+    } catch (err) {
+      console.error('Error adding task:', err);
+      setError(err.message || 'Unable to add task right now.');
+      setStatus('');
+    } finally {
+      setAdding(false);
+    }
   };
 
+  useEffect(() => {
+    const button = addButtonRef.current;
+    if (!button) return undefined;
+
+    const nativeClickHandler = (event) => {
+      handleAddTask(event);
+    };
+
+    button.addEventListener('click', nativeClickHandler);
+    return () => button.removeEventListener('click', nativeClickHandler);
+  }, [newTask, adding]);
+
   const toggleComplete = async (task) => {
-    const token = localStorage.getItem('token');
-    await fetch(`/tasks/${task._id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': token
-      },
-      body: JSON.stringify({ completed: !task.completed })
-    });
-    fetchTasks();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await requestWithApiFallback(`/api/tasks/${task._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({ completed: !task.completed })
+      });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Unable to update task right now.');
+      }
+
+      await fetchTasks();
+    } catch (err) {
+      console.error('Error updating task:', err);
+      setError(err.message || 'Unable to update task right now.');
+    }
   };
 
   const deleteTask = async (id) => {
-    const token = localStorage.getItem('token');
-    await fetch(`/tasks/${id}`, {
-      method: 'DELETE',
-      headers: { 'x-auth-token': token }
-    });
-    setDeleteConfirm(null);
-    fetchTasks();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await requestWithApiFallback(`/api/tasks/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-auth-token': token }
+      });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Unable to delete task right now.');
+      }
+
+      setDeleteConfirm(null);
+      await fetchTasks();
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      setError(err.message || 'Unable to delete task right now.');
+    }
   };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
@@ -120,7 +253,10 @@ export default function Tasks() {
               type="text"
               placeholder="Add a new task..."
               value={newTask.title}
-              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+              onChange={(e) => {
+                setNewTask({ ...newTask, title: e.target.value });
+                if (error) setError('');
+              }}
               className="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
             <select
@@ -138,16 +274,27 @@ export default function Tasks() {
               onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
               className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
-            <button type="submit" disabled={adding} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
-              Add
+            <button
+              ref={addButtonRef}
+              type="button"
+              onClick={handleAddTask}
+              aria-disabled={adding ? 'true' : 'false'}
+              className={`bg-blue-600 text-white px-6 py-3 rounded-lg transition ${
+                adding ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+              }`}
+            >
+              {adding ? 'Adding...' : 'Add'}
             </button>
           </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!error && status && <p className="text-sm text-blue-600">{status}</p>}
         </div>
       </form>
 
       {/* Filter Buttons */}
       <div className="flex gap-2 mb-6">
         <button
+          type="button"
           onClick={() => setFilter('all')}
           className={`px-4 py-2 rounded-lg border transition ${
             filter === 'all'
@@ -158,6 +305,7 @@ export default function Tasks() {
           All ({tasks.length})
         </button>
         <button
+          type="button"
           onClick={() => setFilter('pending')}
           className={`px-4 py-2 rounded-lg border transition ${
             filter === 'pending'
@@ -168,6 +316,7 @@ export default function Tasks() {
           Pending ({tasks.filter(t => !t.completed).length})
         </button>
         <button
+          type="button"
           onClick={() => setFilter('completed')}
           className={`px-4 py-2 rounded-lg border transition ${
             filter === 'completed'
@@ -187,12 +336,14 @@ export default function Tasks() {
             <p className="text-gray-600 mb-6">This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button
+                type="button"
                 onClick={() => setDeleteConfirm(null)}
                 className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => deleteTask(deleteConfirm)}
                 className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
               >
@@ -214,6 +365,7 @@ export default function Tasks() {
           >
             {/* Checkbox */}
             <button
+              type="button"
               onClick={() => toggleComplete(task)}
               className={`w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition ${
                 task.completed ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-blue-500'
@@ -244,6 +396,7 @@ export default function Tasks() {
 
             {/* Delete Button */}
             <button
+              type="button"
               onClick={() => setDeleteConfirm(task._id)}
               className="text-red-500 hover:text-red-700 text-sm hover:bg-red-50 px-3 py-2 rounded transition"
             >

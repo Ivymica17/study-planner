@@ -1,6 +1,7 @@
 export const HIGHLIGHT_COLORS = [
-  { name: 'Yellow', value: '#facc15' },
-  { name: 'Green', value: '#4ade80' },
+  { name: 'Yellow', value: '#facc15', meaning: 'In progress' },
+  { name: 'Green', value: '#4ade80', meaning: 'Completed' },
+  { name: 'Red', value: '#f87171', meaning: 'Weak areas' },
   { name: 'Blue', value: '#60a5fa' },
   { name: 'Pink', value: '#f472b6' },
 ];
@@ -22,9 +23,58 @@ export const DRAW_COLORS = [
 ];
 
 const STORAGE_PREFIX = 'study-workspace';
+const STUDY_ACTIVITY_STORAGE_KEY = 'study-activity-days';
 
 export function getWorkspaceStorageKey(moduleId) {
   return `${STORAGE_PREFIX}:${moduleId}`;
+}
+
+function formatLocalDateKey(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function loadStudyActivityDays() {
+  try {
+    const raw = localStorage.getItem(STUDY_ACTIVITY_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((value) => typeof value === 'string') : [];
+  } catch (error) {
+    console.error('Failed to load study activity days:', error);
+    return [];
+  }
+}
+
+export function recordStudyActivity(value = new Date()) {
+  try {
+    const activityDay = formatLocalDateKey(value);
+    const days = new Set(loadStudyActivityDays());
+    days.add(activityDay);
+
+    const nextDays = [...days].sort().slice(-365);
+    localStorage.setItem(STUDY_ACTIVITY_STORAGE_KEY, JSON.stringify(nextDays));
+    return nextDays;
+  } catch (error) {
+    console.error('Failed to record study activity:', error);
+    return loadStudyActivityDays();
+  }
+}
+
+export function getStudyStreakCount(activityDays = loadStudyActivityDays()) {
+  const daySet = new Set(activityDays);
+  let streak = 0;
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+
+  while (daySet.has(formatLocalDateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
 }
 
 export function createEmptyWorkspaceState() {
@@ -61,15 +111,18 @@ export function loadWorkspaceState(moduleId) {
 export function saveWorkspaceState(moduleId, state) {
   if (!moduleId) return;
 
+  const lastOpenedAt = state.lastOpenedAt || new Date().toISOString();
+
   const payload = {
     currentPage: state.currentPage,
     zoom: state.zoom,
     highlightsByPage: state.highlightsByPage || {},
     drawingsByPage: state.drawingsByPage || {},
-    lastOpenedAt: state.lastOpenedAt || new Date().toISOString(),
+    lastOpenedAt,
   };
 
   localStorage.setItem(getWorkspaceStorageKey(moduleId), JSON.stringify(payload));
+  recordStudyActivity(lastOpenedAt);
 }
 
 export function clamp(value, min, max) {

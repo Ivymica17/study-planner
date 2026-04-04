@@ -10,3 +10,48 @@
 [2m8:56:13 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
 [2m8:57:35 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
 [2m8:57:35 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m11:59:08 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/Modules.jsx[22m
+[2m11:59:21 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m12:01:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m12:01:44 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m12:19:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m12:20:29 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/Modules.jsx[22m
+[2m12:24:31 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m12:25:27 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/Modules.jsx[22m
+[2m12:25:28 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/pages/Modules.jsx[22m
+[2m1:09:25 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m1:17:37 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Layout.jsx, /src/index.css[22m
+[2m1:17:37 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Layout.jsx, /src/index.css[22m
+[2m1:40:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m1:40:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m1:40:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m1:40:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/Layout.jsx, /src/index.css[22m
+[2m1:40:57 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/context/StudyAssistantContext.jsx, /src/index.css[22m
+[2m1:40:57 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/StudyAssistant.jsx, /src/index.css[22m
+[2m1:40:57 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/PdfStudyWorkspace.jsx, /src/index.css[22m
+[2m1:40:57 AM[22m [36m[1m[vite][22m[39m [33mhmr invalidate [39m[2m/src/context/StudyAssistantContext.jsx[22m Could not Fast Refresh ("useStudyAssistantContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m1:40:57 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css, /src/components/study-area/PdfStudyWorkspace.jsx, /src/components/StudyAssistant.jsx[22m
+[2m1:43:01 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/StudyAssistant.jsx, /src/index.css[22m
+[2m1:49:15 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/Dashboard.jsx, /src/pages/ModulesWorkspaceClean.jsx, /src/components/study-area/PdfStudyWorkspace.jsx, /src/components/study-area/StudyToolbar.jsx, /src/components/study-area/PdfPageStage.jsx, /src/components/Layout.jsx[22m
+[2m1:49:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/study-area/StudyToolbar.jsx, /src/index.css[22m
+[2m1:54:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m1:56:24 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m2:28:22 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m2:28:29 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m2:39:24 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m2:43:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m2:49:26 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m2:51:36 AM[22m [36m[1m[vite][22m[39m [32mvite.config.js changed, restarting server...[39m
+[2m2:51:36 AM[22m [36m[1m[vite][22m[39m server restarted.
+[2m2:51:42 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m2:51:46 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m
+[2m2:55:26 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m2:58:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m3:00:23 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Tasks.jsx, /src/index.css[22m
+[2m3:02:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/StudyAssistant.jsx, /src/index.css[22m
+[2m3:09:08 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GenerationSettings.jsx, /src/index.css[22m
+[2m3:09:30 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GenerationSettings.jsx, /src/index.css[22m
+[2m3:10:06 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/GenerationSettings.jsx, /src/index.css[22m
+[2m2:50:21 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/Layout.jsx, /src/pages/Dashboard.jsx, /src/pages/ModulesWorkspaceClean.jsx, /src/components/study-area/PdfStudyWorkspace.jsx, /src/components/study-area/StudyToolbar.jsx, /src/components/study-area/PdfPageStage.jsx[22m
+[2m2:50:25 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/QuizClean.jsx, /src/pages/Dashboard.jsx, /src/pages/ModulesWorkspaceClean.jsx[22m
+[2m2:50:42 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/Dashboard.jsx, /src/index.css[22m

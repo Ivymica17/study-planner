@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Modules() {
@@ -37,7 +37,9 @@ export default function Modules() {
     }
   };
 
-  useEffect(() => { fetchModules(); }, [navigate]);
+  useEffect(() => {
+    fetchModules();
+  }, [navigate]);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -61,7 +63,7 @@ export default function Modules() {
       const res = await fetch('/modules/upload', {
         method: 'POST',
         headers: { 'x-auth-token': token },
-        body: formData
+        body: formData,
       });
 
       if (res.ok) {
@@ -69,16 +71,14 @@ export default function Modules() {
         setTitle('');
         setFile(null);
         setTextInput('');
-        
-        // Show warning if AI features not available
+
         if (result.warning) {
           setError(result.warning);
           setTimeout(() => setError(''), 6000);
         }
-        
+
         fetchModules();
       } else {
-        // Backend should return JSON, but proxies/404s sometimes return HTML/text.
         let msg = 'Failed to upload module';
         try {
           const errorData = await res.json();
@@ -106,10 +106,10 @@ export default function Modules() {
     try {
       const res = await fetch(`/modules/${moduleId}`, {
         method: 'DELETE',
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
       });
       if (res.ok) {
-        setModules(modules.filter(m => m._id !== moduleId));
+        setModules(modules.filter((m) => m._id !== moduleId));
         setDeleteConfirm(null);
       } else {
         setError('Failed to delete module');
@@ -124,32 +124,42 @@ export default function Modules() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Modules</h1>
+      <h1 className="mb-10 text-3xl font-bold text-gray-800">Modules</h1>
 
       {error && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 flex justify-between items-center">
+        <div className="mb-6 flex items-center justify-between rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-800">
           <span>{error}</span>
-          <button onClick={() => setError('')} className="text-yellow-600 hover:text-yellow-800 font-bold">×</button>
+          <button onClick={() => setError('')} className="font-bold text-yellow-600 hover:text-yellow-800">
+            x
+          </button>
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Upload New Module</h2>
+      <div className="mb-10 rounded-2xl border border-sky-100 bg-white p-7 shadow-[0_20px_50px_rgba(15,23,42,0.07)]">
+        <h2 className="mb-5 text-xl font-semibold text-gray-800">Upload New Module</h2>
         <form onSubmit={handleUpload} className="space-y-4">
           <input
             type="text"
             placeholder="Module title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full rounded-xl border border-gray-200 p-3 outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
 
-          <div className="flex gap-4 mb-4">
-            <button type="button" onClick={() => setShowTextInput(false)} className={`px-4 py-2 rounded-lg ${!showTextInput ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+          <div className="mb-2 flex gap-4">
+            <button
+              type="button"
+              onClick={() => setShowTextInput(false)}
+              className={`rounded-xl px-4 py-2.5 transition ${!showTextInput ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
               Upload File
             </button>
-            <button type="button" onClick={() => setShowTextInput(true)} className={`px-4 py-2 rounded-lg ${showTextInput ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+            <button
+              type="button"
+              onClick={() => setShowTextInput(true)}
+              className={`rounded-xl px-4 py-2.5 transition ${showTextInput ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
               Paste Text
             </button>
           </div>
@@ -159,28 +169,51 @@ export default function Modules() {
               placeholder="Paste your study material here..."
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              className="w-full p-3 border rounded-lg h-40 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+              className="h-40 w-full resize-none rounded-xl border border-gray-200 p-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
           ) : (
-            <input type="file" onChange={(e) => setFile(e.target.files[0])} accept=".pdf,.txt" className="w-full p-3 border rounded-lg" />
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files[0])}
+              accept=".pdf,.txt"
+              className="w-full rounded-xl border border-gray-200 p-3"
+            />
           )}
 
-          <button type="submit" disabled={uploading} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={uploading}
+            className="rounded-xl bg-blue-600 px-6 py-3 text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
+          >
             {uploading ? 'Processing with AI...' : 'Upload & Analyze'}
           </button>
         </form>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {modules.map(module => (
-          <div key={module._id} className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition group relative">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">Your Modules</h2>
+        <p className="mt-1 text-sm text-gray-500">Browse, revisit, and jump back into any study pack.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
+        {modules.map((module) => (
+          <div
+            key={module._id}
+            className="group relative rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.07)] transition duration-200 hover:-translate-y-1.5 hover:border-blue-200 hover:shadow-[0_26px_60px_rgba(37,99,235,0.14)]"
+          >
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div className="h-1.5 w-14 rounded-full bg-blue-200 transition duration-200 group-hover:bg-blue-500"></div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+                {module.quizQuestions?.length || 0} questions
+              </span>
+            </div>
             <Link to={`/modules/${module._id}`} className="block">
-              <h3 className="font-semibold text-lg text-gray-800 mb-2">{module.title}</h3>
-              <p className="text-sm text-gray-500 mb-3">
+              <h3 className="mb-3 text-lg font-semibold text-gray-800 transition group-hover:text-blue-700">{module.title}</h3>
+              <p className="mb-5 text-sm leading-6 text-gray-500">
                 {module.summary ? `${module.summary.slice(0, 100)}...` : 'Processing summary...'}
               </p>
-              <div className="flex justify-between text-xs text-gray-400">
-                <span>{module.quizQuestions?.length || 0} questions</span>
+              <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-gray-400">
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700">Ready to review</span>
                 <span>{new Date(module.createdAt).toLocaleDateString()}</span>
               </div>
             </Link>
@@ -189,10 +222,10 @@ export default function Modules() {
                 e.preventDefault();
                 setDeleteConfirm(module._id);
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-400 opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
               title="Delete module"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
@@ -201,20 +234,20 @@ export default function Modules() {
       </div>
 
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Module?</h3>
-            <p className="text-gray-600 mb-6">This action cannot be undone. All quiz attempts will be permanently deleted.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="max-w-sm rounded-xl bg-white p-6">
+            <h3 className="mb-2 text-lg font-bold text-gray-800">Delete Module?</h3>
+            <p className="mb-6 text-gray-600">This action cannot be undone. All quiz attempts will be permanently deleted.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => handleDelete(deleteConfirm)}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
               >
                 Delete
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+                className="flex-1 rounded-lg bg-gray-200 px-4 py-2 text-gray-800 transition hover:bg-gray-300"
               >
                 Cancel
               </button>
@@ -224,7 +257,7 @@ export default function Modules() {
       )}
 
       {modules.length === 0 && (
-        <p className="text-center text-gray-500 py-10">No modules uploaded yet.</p>
+        <p className="rounded-2xl bg-white px-6 py-12 text-center text-gray-500 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">No modules uploaded yet.</p>
       )}
     </div>
   );
