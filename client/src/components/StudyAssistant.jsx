@@ -160,6 +160,9 @@ export default function StudyAssistant() {
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const scrollRef = useRef(null);
+  const dockPositionClass = 'bottom-24 right-3 sm:bottom-28 sm:right-4 lg:bottom-6 lg:right-6';
+  const alignmentClass = 'items-end';
+  const panelOriginClass = 'origin-bottom-right';
 
   const modeLabel = studyContext.isStudyArea ? 'Context-aware mode' : 'General mode';
   const contextSource = useMemo(() => {
@@ -270,10 +273,10 @@ export default function StudyAssistant() {
   };
 
   return (
-    <div className="pointer-events-none fixed bottom-24 right-4 z-[70] sm:bottom-6 sm:right-6">
-      <div className="pointer-events-none flex flex-col items-end gap-3">
+    <div className={`pointer-events-none fixed z-[25] ${dockPositionClass}`}>
+      <div className={`pointer-events-none flex flex-col gap-3 ${alignmentClass}`}>
         <div
-          className={`flex h-[min(42rem,calc(100vh-8rem))] w-[min(24rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] origin-bottom-right flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/95 shadow-[0_28px_80px_rgba(15,23,42,0.2)] backdrop-blur transition-all duration-300 max-sm:h-[min(38rem,calc(100vh-7.5rem))] ${
+          className={`flex h-[min(38rem,calc(100vh-9rem))] w-[min(21rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] ${panelOriginClass} flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/95 shadow-[0_28px_80px_rgba(15,23,42,0.2)] backdrop-blur transition-all duration-300 sm:h-[min(36rem,calc(100vh-10rem))] lg:h-[min(42rem,calc(100vh-8rem))] lg:w-[min(24rem,calc(100vw-2rem))] lg:max-w-[calc(100vw-2rem)] ${
             isOpen
               ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
               : 'pointer-events-none translate-y-6 scale-95 opacity-0'
@@ -374,10 +377,10 @@ export default function StudyAssistant() {
         <button
           type="button"
           onClick={() => setIsOpen((current) => !current)}
-          className="pointer-events-auto group flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,_#0f172a_0%,_#2563eb_60%,_#38bdf8_100%)] text-white shadow-[0_20px_45px_rgba(37,99,235,0.38)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(37,99,235,0.45)]"
+          className="pointer-events-auto relative overflow-hidden group flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,_#0f172a_0%,_#2563eb_60%,_#38bdf8_100%)] text-white shadow-[0_20px_45px_rgba(37,99,235,0.38)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(37,99,235,0.45)]"
           aria-label={isOpen ? 'Close AI Study Assistant' : 'Open AI Study Assistant'}
         >
-          <span className="absolute inset-0 rounded-full bg-white/0 transition group-hover:bg-white/10" />
+          <span className="pointer-events-none absolute inset-0 rounded-full bg-white/0 transition group-hover:bg-white/10" />
           <svg viewBox="0 0 24 24" className="relative h-7 w-7 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
             <path d="M8 10h8M8 14h5" strokeLinecap="round" />
             <path

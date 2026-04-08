@@ -2,8 +2,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { getStudyStreakCount, loadStudyActivityDays, loadWorkspaceState } from '../utils/studyWorkspace';
 import { loadQuizSession } from '../utils/quizSession';
+import TaskReminderControls from '../components/TaskReminderControls';
+import { useTaskReminders } from '../context/TaskReminderContext';
 
 export default function Dashboard() {
+  const { settings, setSoundEnabled } = useTaskReminders();
   const [modules, setModules] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [studyGoal, setStudyGoal] = useState(null);
@@ -514,20 +517,57 @@ export default function Dashboard() {
 
         <div className="rounded-2xl border border-rose-100 bg-white p-7 shadow-[0_20px_50px_rgba(15,23,42,0.07)]">
           <div className="mb-5 flex items-center justify-between gap-4">
-            <h2 className="text-xl font-semibold text-gray-800">Upcoming Deadlines</h2>
-            <Link to="/tasks" className="text-sm text-blue-600 hover:underline">
-              View All
-            </Link>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">Upcoming Deadlines</h2>
+              <p className="mt-1 text-sm text-slate-500">Stay on top of due dates with soft reminders instead of alarms.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSoundEnabled(!settings.soundEnabled)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  settings.soundEnabled
+                    ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Reminder Sound {settings.soundEnabled ? 'On' : 'Off'}
+              </button>
+              <Link to="/tasks" className="text-sm text-blue-600 hover:underline">
+                View All
+              </Link>
+            </div>
           </div>
           {upcomingDeadlines.length === 0 ? (
             <p className="rounded-2xl bg-rose-50 px-4 py-10 text-center text-gray-500">No upcoming deadlines. Great job!</p>
           ) : (
             <div className="space-y-3">
               {upcomingDeadlines.map((task) => (
-                <div key={task._id} className="rounded-2xl border border-rose-100 bg-rose-50/70 p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="truncate font-medium text-gray-800">{task.title}</span>
-                    <span className="ml-2 whitespace-nowrap text-xs text-gray-500">{new Date(task.deadline).toLocaleDateString()}</span>
+                <div
+                  key={task._id}
+                  className="rounded-3xl border border-rose-100 bg-[linear-gradient(180deg,_rgba(255,255,255,0.96)_0%,_rgba(255,241,242,0.74)_100%)] p-4 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold text-slate-800">{task.title}</p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Due {new Date(task.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        task.priority === 'High'
+                          ? 'bg-rose-100 text-rose-700'
+                          : task.priority === 'Medium'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-emerald-100 text-emerald-700'
+                      }`}
+                    >
+                      {task.priority}
+                    </span>
+                  </div>
+                  <div className="mt-4">
+                    <TaskReminderControls task={task} />
                   </div>
                 </div>
               ))}

@@ -1,0 +1,72 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="badgeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 208) rotate(90) scale(264)">
+      <stop offset="0" stop-color="#1E293B"/>
+      <stop offset="0.48" stop-color="#111827"/>
+      <stop offset="1" stop-color="#05070B"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="164" y1="82" x2="350" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDE68A"/>
+      <stop offset="0.5" stop-color="#D4A94F"/>
+      <stop offset="1" stop-color="#8A5A17"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="150" y1="122" x2="366" y2="268" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFF6FF"/>
+      <stop offset="0.5" stop-color="#94A3B8"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="bookBlue" x1="113" y1="295" x2="399" y2="355" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="checkGreen" x1="213" y1="311" x2="308" y2="370" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A3E635"/>
+      <stop offset="1" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="256" cy="256" r="231" fill="url(#badgeGlow)"/>
+  <circle cx="256" cy="256" r="231.5" stroke="#E5E7EB"/>
+
+  <path d="M259 83C281 83 307 95 321 113C328 122 326 136 317 141L303 149L271 102C267 95 255 95 251 102L220 149L202 142C192 138 188 123 196 113C210 95 236 83 259 83Z" fill="url(#gold)"/>
+  <path d="M200 140L256 110L317 140L301 222H212L200 140Z" fill="url(#steel)"/>
+  <path d="M221 140L256 123L295 140L256 175L221 140Z" fill="#1E293B"/>
+  <path d="M214 157H299" stroke="#475569" stroke-width="7" stroke-linecap="round"/>
+  <path d="M256 123V222" stroke="#64748B" stroke-width="6"/>
+  <path d="M184 148L214 164L201 205L170 189L184 148Z" fill="url(#steel)"/>
+  <path d="M328 148L298 164L311 205L342 189L328 148Z" fill="url(#steel)"/>
+  <path d="M194 154L161 178L162 210L190 198L194 154Z" fill="#64748B"/>
+  <path d="M318 154L351 178L350 210L322 198L318 154Z" fill="#64748B"/>
+
+  <ellipse cx="255" cy="224" rx="87" ry="74" fill="#F8FAFC"/>
+  <path d="M168 224C168 191 187 165 218 151L224 184L255 168L286 184L292 151C323 165 342 191 342 224C342 265 304 300 255 300C206 300 168 265 168 224Z" fill="#F8FAFC"/>
+  <path d="M179 251L208 232L222 282L191 268L179 251Z" fill="#CBD5E1"/>
+  <path d="M333 251L304 232L290 282L321 268L333 251Z" fill="#CBD5E1"/>
+  <path d="M204 286L232 262L243 304L216 302L204 286Z" fill="#E2E8F0"/>
+  <path d="M306 286L278 262L267 304L294 302L306 286Z" fill="#E2E8F0"/>
+
+  <circle cx="224" cy="219" r="33" fill="#1E293B"/>
+  <circle cx="287" cy="219" r="33" fill="#1E293B"/>
+  <circle cx="224" cy="219" r="24" fill="#FEF3C7"/>
+  <circle cx="287" cy="219" r="24" fill="#FEF3C7"/>
+  <circle cx="224" cy="219" r="11" fill="#0F172A"/>
+  <circle cx="287" cy="219" r="11" fill="#0F172A"/>
+  <circle cx="218" cy="212" r="4" fill="#FFFFFF"/>
+  <circle cx="281" cy="212" r="4" fill="#FFFFFF"/>
+  <path d="M238 220H274" stroke="#475569" stroke-width="6" stroke-linecap="round"/>
+  <path d="M254 227L240 242H271L254 227Z" fill="#D97706"/>
+  <path d="M240 251C248 258 263 258 271 251" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+
+  <path d="M148 287C184 283 219 286 256 302V371C221 354 185 348 148 352V287Z" fill="#F8FAFC"/>
+  <path d="M364 287C328 283 293 286 256 302V371C291 354 327 348 364 352V287Z" fill="#F8FAFC"/>
+  <path d="M148 287C184 283 219 286 256 302M364 287C328 283 293 286 256 302M256 302V371" stroke="#64748B" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M136 304C178 299 218 303 256 319V385C218 368 178 363 136 369V304Z" fill="url(#bookBlue)"/>
+  <path d="M376 304C334 299 294 303 256 319V385C294 368 334 363 376 369V304Z" fill="url(#bookBlue)"/>
+  <path d="M149 302C188 299 223 303 256 317" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+  <path d="M362 302C323 299 288 303 256 317" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+
+  <path d="M210 337L238 362L305 289" stroke="url(#checkGreen)" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="256" y="446" text-anchor="middle" fill="#F8FAFC" font-size="74" font-weight="700" font-family="Georgia, 'Times New Roman', serif" letter-spacing="3">METIS</text>
+  <text x="256" y="479" text-anchor="middle" fill="#F3E8C8" font-size="24" font-family="Georgia, 'Times New Roman', serif">Study Planner &amp; Exam Prep</text>
+</svg>

@@ -13,6 +13,7 @@ import Tasks from './pages/Tasks';
 import StudyArea from './pages/StudyArea';
 import Layout from './components/Layout';
 import { StudyAssistantProvider } from './context/StudyAssistantContext';
+import { TaskReminderProvider } from './context/TaskReminderContext';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -25,21 +26,23 @@ function App() {
     <AuthProvider>
       <StudyAssistantProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
-              <Route path="modules" element={<ModulesWorkspace />} />
-              <Route path="modules/:id" element={<ModuleDetail />} />
-              <Route path="quiz/:id" element={<Quiz />} />
-              <Route path="quiz-history/:moduleId" element={<QuizHistory />} />
-              <Route path="quiz-stats" element={<QuizStats />} />
-              <Route path="flashcards" element={<Flashcards />} />
-              <Route path="study-area" element={<StudyArea />} />
-              <Route path="tasks" element={<Tasks />} />
-            </Route>
-          </Routes>
+          <TaskReminderProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                <Route index element={<Dashboard />} />
+                <Route path="modules" element={<ModulesWorkspace />} />
+                <Route path="modules/:id" element={<ModuleDetail />} />
+                <Route path="quiz/:id" element={<Quiz />} />
+                <Route path="quiz-history/:moduleId" element={<QuizHistory />} />
+                <Route path="quiz-stats" element={<QuizStats />} />
+                <Route path="flashcards" element={<Flashcards />} />
+                <Route path="study-area" element={<StudyArea />} />
+                <Route path="tasks" element={<Tasks />} />
+              </Route>
+            </Routes>
+          </TaskReminderProvider>
         </BrowserRouter>
       </StudyAssistantProvider>
     </AuthProvider>

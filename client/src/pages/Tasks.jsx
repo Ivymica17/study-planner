@@ -1,23 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TaskReminderControls from '../components/TaskReminderControls';
 
-// Priority color mapping
 const priorityColors = {
   High: 'bg-red-100 text-red-800 border-red-300',
   Medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  Low: 'bg-green-100 text-green-800 border-green-300'
+  Low: 'bg-green-100 text-green-800 border-green-300',
 };
 
 const priorityDotColors = {
   High: 'bg-red-500',
   Medium: 'bg-yellow-500',
-  Low: 'bg-green-500'
+  Low: 'bg-green-500',
 };
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, completed, pending
+  const [filter, setFilter] = useState('all');
   const [newTask, setNewTask] = useState({ title: '', deadline: '', priority: 'Medium' });
   const [adding, setAdding] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -45,21 +45,19 @@ export default function Tasks() {
         const contentType = response.headers.get('content-type') || '';
         const shouldTryNextBase =
           index < bases.length - 1 &&
-          (
-            response.status === 404 ||
+          (response.status === 404 ||
             response.status === 502 ||
             response.status === 503 ||
             response.status === 504 ||
-            contentType.includes('text/html')
-          );
+            contentType.includes('text/html'));
 
         if (shouldTryNextBase) {
           continue;
         }
 
         return response;
-      } catch (error) {
-        lastError = error;
+      } catch (fetchError) {
+        lastError = fetchError;
       }
     }
 
@@ -78,6 +76,7 @@ export default function Tasks() {
       navigate('/login');
       return;
     }
+
     try {
       const res = await requestWithApiFallback('/api/tasks', { headers: { 'x-auth-token': token } });
       if (res.status === 401) {
@@ -102,23 +101,21 @@ export default function Tasks() {
     }
   };
 
-  useEffect(() => { fetchTasks(); }, [navigate]);
+  useEffect(() => {
+    fetchTasks();
+  }, [navigate]);
 
-  // Filter tasks based on completion status
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
     if (filter === 'pending') return !task.completed;
     return true;
   });
 
-  // Sort by priority (High > Medium > Low)
   const priorityOrder = { High: 0, Medium: 1, Low: 2 };
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    return (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
-  });
+  const sortedTasks = [...filteredTasks].sort((a, b) => (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1));
 
-  const handleAddTask = async (e) => {
-    e?.preventDefault?.();
+  const handleAddTask = async (event) => {
+    event?.preventDefault?.();
     const title = newTask.title.trim();
     if (!title) {
       setError('Please enter a task title.');
@@ -141,9 +138,9 @@ export default function Tasks() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token
+          'x-auth-token': token,
         },
-        body: JSON.stringify({ ...newTask, title })
+        body: JSON.stringify({ ...newTask, title }),
       });
 
       if (res.status === 401) {
@@ -160,6 +157,7 @@ export default function Tasks() {
       if (data?._id) {
         setTasks((current) => [data, ...current.filter((task) => task._id !== data._id)]);
       }
+
       setNewTask({ title: '', deadline: '', priority: 'Medium' });
       setStatus('Task added.');
       fetchTasks();
@@ -191,9 +189,9 @@ export default function Tasks() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token
+          'x-auth-token': token,
         },
-        body: JSON.stringify({ completed: !task.completed })
+        body: JSON.stringify({ completed: !task.completed }),
       });
 
       if (res.status === 401) {
@@ -218,7 +216,7 @@ export default function Tasks() {
       const token = localStorage.getItem('token');
       const res = await requestWithApiFallback(`/api/tasks/${id}`, {
         method: 'DELETE',
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
       });
 
       if (res.status === 401) {
@@ -239,30 +237,29 @@ export default function Tasks() {
     }
   };
 
-  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (loading) return <div className="py-10 text-center">Loading...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Tasks</h1>
+    <div className="mx-auto max-w-3xl">
+      <h1 className="mb-8 text-3xl font-bold text-gray-800">Tasks</h1>
 
-      {/* Add Task Form */}
-      <form onSubmit={handleAddTask} className="bg-white rounded-xl shadow-sm border p-6 mb-8">
+      <form onSubmit={handleAddTask} className="mb-8 rounded-xl border bg-white p-6 shadow-sm">
         <div className="space-y-4">
           <div className="flex gap-3">
             <input
               type="text"
               placeholder="Add a new task..."
               value={newTask.title}
-              onChange={(e) => {
-                setNewTask({ ...newTask, title: e.target.value });
+              onChange={(event) => {
+                setNewTask({ ...newTask, title: event.target.value });
                 if (error) setError('');
               }}
-              className="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="flex-1 rounded-lg border p-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
               value={newTask.priority}
-              onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-              className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              onChange={(event) => setNewTask({ ...newTask, priority: event.target.value })}
+              className="rounded-lg border p-3 outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -271,35 +268,33 @@ export default function Tasks() {
             <input
               type="date"
               value={newTask.deadline}
-              onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
-              className="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              onChange={(event) => setNewTask({ ...newTask, deadline: event.target.value })}
+              className="rounded-lg border p-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               ref={addButtonRef}
               type="button"
               onClick={handleAddTask}
               aria-disabled={adding ? 'true' : 'false'}
-              className={`bg-blue-600 text-white px-6 py-3 rounded-lg transition ${
-                adding ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+              className={`rounded-lg bg-blue-600 px-6 py-3 text-white transition ${
+                adding ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-700'
               }`}
             >
               {adding ? 'Adding...' : 'Add'}
             </button>
           </div>
+          <p className="text-xs text-slate-500">Tasks with due dates automatically get soft reminder options you can fine-tune below.</p>
           {error && <p className="text-sm text-red-600">{error}</p>}
           {!error && status && <p className="text-sm text-blue-600">{status}</p>}
         </div>
       </form>
 
-      {/* Filter Buttons */}
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex gap-2">
         <button
           type="button"
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg border transition ${
-            filter === 'all'
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+          className={`rounded-lg border px-4 py-2 transition ${
+            filter === 'all' ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
           }`}
         >
           All ({tasks.length})
@@ -307,45 +302,44 @@ export default function Tasks() {
         <button
           type="button"
           onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-lg border transition ${
+          className={`rounded-lg border px-4 py-2 transition ${
             filter === 'pending'
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+              ? 'border-blue-600 bg-blue-600 text-white'
+              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
           }`}
         >
-          Pending ({tasks.filter(t => !t.completed).length})
+          Pending ({tasks.filter((task) => !task.completed).length})
         </button>
         <button
           type="button"
           onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded-lg border transition ${
+          className={`rounded-lg border px-4 py-2 transition ${
             filter === 'completed'
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+              ? 'border-blue-600 bg-blue-600 text-white'
+              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
           }`}
         >
-          Completed ({tasks.filter(t => t.completed).length})
+          Completed ({tasks.filter((task) => task.completed).length})
         </button>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg">
-          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Delete Task?</h3>
-            <p className="text-gray-600 mb-6">This action cannot be undone.</p>
-            <div className="flex gap-3 justify-end">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center rounded-lg bg-black bg-opacity-50">
+          <div className="max-w-sm rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-gray-800">Delete Task?</h3>
+            <p className="mb-6 text-gray-600">This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => deleteTask(deleteConfirm)}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
               >
                 Delete
               </button>
@@ -354,62 +348,57 @@ export default function Tasks() {
         </div>
       )}
 
-      {/* Task List */}
       <div className="space-y-3">
-        {sortedTasks.map(task => (
+        {sortedTasks.map((task) => (
           <div
             key={task._id}
-            className={`bg-white rounded-xl shadow-sm border p-4 flex items-center gap-4 transition ${
-              task.completed ? 'opacity-60 bg-gray-50' : ''
-            }`}
+            className={`rounded-xl border bg-white p-4 shadow-sm transition ${task.completed ? 'bg-gray-50 opacity-60' : ''}`}
           >
-            {/* Checkbox */}
-            <button
-              type="button"
-              onClick={() => toggleComplete(task)}
-              className={`w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition ${
-                task.completed ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-blue-500'
-              }`}
-            >
-              {task.completed && '✓'}
-            </button>
+            <div className="flex items-start gap-4">
+              <button
+                type="button"
+                onClick={() => toggleComplete(task)}
+                className={`mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 transition ${
+                  task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-gray-300 hover:border-blue-500'
+                }`}
+              >
+                {task.completed && 'v'}
+              </button>
 
-            {/* Priority Dot */}
-            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${priorityDotColors[task.priority]}`}></div>
+              <div className={`mt-2 h-3 w-3 flex-shrink-0 rounded-full ${priorityDotColors[task.priority]}`}></div>
 
-            {/* Task Info */}
-            <div className="flex-1">
-              <p className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                {task.title}
-              </p>
-              <div className="flex items-center gap-3 mt-1">
-                {task.deadline && (
-                  <p className="text-xs text-gray-400">
-                    Due: {new Date(task.deadline).toLocaleDateString()}
-                  </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{task.title}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-3">
+                      {task.deadline && <p className="text-xs text-gray-400">Due: {new Date(task.deadline).toLocaleDateString()}</p>}
+                      <span className={`rounded border px-2 py-1 text-xs ${priorityColors[task.priority]}`}>{task.priority}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirm(task._id)}
+                    className="rounded px-3 py-2 text-sm text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+
+                {task.deadline && !task.completed && (
+                  <div className="mt-4">
+                    <TaskReminderControls task={task} compact />
+                  </div>
                 )}
-                <span className={`text-xs px-2 py-1 rounded border ${priorityColors[task.priority]}`}>
-                  {task.priority}
-                </span>
               </div>
             </div>
-
-            {/* Delete Button */}
-            <button
-              type="button"
-              onClick={() => setDeleteConfirm(task._id)}
-              className="text-red-500 hover:text-red-700 text-sm hover:bg-red-50 px-3 py-2 rounded transition"
-            >
-              Delete
-            </button>
           </div>
         ))}
       </div>
 
       {sortedTasks.length === 0 && (
-        <p className="text-center text-gray-500 py-10">
-          {filter === 'all' ? 'No tasks yet. Add one above!' : `No ${filter} tasks.`}
-        </p>
+        <p className="py-10 text-center text-gray-500">{filter === 'all' ? 'No tasks yet. Add one above!' : `No ${filter} tasks.`}</p>
       )}
     </div>
   );

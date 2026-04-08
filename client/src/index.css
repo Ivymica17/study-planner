@@ -53,9 +53,24 @@ textarea {
 }
 
 .study-page-stage .react-pdf__Page__textContent {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
   inset: 0 !important;
   border-radius: 22px;
   overflow: hidden;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.study-page-stage .react-pdf__Page__textContent :is(span, br) {
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .study-page-stage .react-pdf__Page__textContent ::selection {

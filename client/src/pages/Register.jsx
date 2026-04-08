@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BrandLogo from '../components/BrandLogo';
 
 export default function Register() {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
@@ -34,8 +35,14 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.22),_transparent_22%),linear-gradient(135deg,_#0f172a_0%,_#111827_52%,_#1e293b_100%)] p-4">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white p-8 shadow-2xl">
+        <BrandLogo
+          className="mb-6 justify-center"
+          imageClassName="h-24 w-24"
+          titleClassName="text-3xl tracking-[0.22em]"
+          subtitleClassName="text-sm"
+        />
         <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create Account</h2>
         {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-4">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">

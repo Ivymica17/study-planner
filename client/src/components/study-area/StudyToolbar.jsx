@@ -161,64 +161,63 @@ export default function StudyToolbar({
       </div>
 
       {(activeTool === 'highlighter' || activeTool === 'remove-highlight') && (
-        <div className="mt-4 flex max-w-[320px] flex-col gap-4 rounded-[24px] bg-slate-900 px-4 py-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.28)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Highlighter</p>
-              <p className="mt-1 text-sm text-slate-300">
-                {activeTool === 'remove-highlight'
-                  ? 'Tap a saved highlight on the page to remove it.'
-                  : 'Pick a size and color, then drag across the text.'}
-              </p>
-            </div>
-            <div
-              className="h-9 w-9 rounded-xl border border-white/10"
-              style={{ backgroundColor: highlightColor }}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-medium text-slate-200">Size</p>
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
-              <span>Size</span>
-              <input
-                type="range"
-                min="1"
-                max={HIGHLIGHT_STYLES.length}
-                step="1"
-                value={highlightLevel}
-                onChange={(event) => onHighlightStyleChange(HIGHLIGHT_STYLES[Number(event.target.value) - 1]?.id || 'medium')}
-                className="w-full accent-sky-400"
+        <div className="mt-4 w-full max-w-[40rem] rounded-[28px] bg-slate-900 px-5 py-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.28)]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5">
+            <div className="flex min-w-0 items-center gap-3 md:w-[15rem] md:pr-2">
+              <div
+                className="h-11 w-11 shrink-0 rounded-2xl border border-white/10"
+                style={{ backgroundColor: highlightColor }}
               />
-              <span className="w-4 text-right font-semibold text-white">{highlightLevel}</span>
-            </label>
-          </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Highlighter</p>
+                <p className="mt-1 text-sm leading-5 text-slate-300">
+                  {activeTool === 'remove-highlight'
+                    ? 'Tap a saved highlight on the page to remove it.'
+                    : 'Pick a size and color, then drag across text.'}
+                </p>
+              </div>
+            </div>
 
-          <div>
-            <p className="mb-2 text-sm font-medium text-slate-200">Color</p>
-            <div className="grid grid-cols-2 gap-2.5">
-              {HIGHLIGHT_COLORS.map((color) => (
-                <button
-                  key={color.value}
-                  type="button"
-                  onClick={() => onApplyHighlight(color.value)}
-                  className={`flex items-center gap-3 rounded-2xl border px-3 py-2 text-left transition ${
-                    highlightColor === color.value
-                      ? 'border-white bg-white/10 scale-[1.02]'
-                      : 'border-white/10 bg-white/5 hover:bg-white/10'
-                  } ${hasPendingSelection ? 'shadow-[0_0_0_4px_rgba(255,255,255,0.12)]' : ''}`}
-                  title={color.meaning ? `${color.name}: ${color.meaning}` : color.name}
-                >
-                  <span
-                    className="h-10 w-10 shrink-0 rounded-full border-4 border-transparent"
-                    style={{ backgroundColor: color.value }}
-                  />
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-white">{color.name}</span>
-                    <span className="block text-xs text-slate-300">{color.meaning || 'General note'}</span>
-                  </span>
-                </button>
-              ))}
+            <div className="min-w-0 md:w-[14rem]">
+              <p className="mb-2 text-sm font-medium text-slate-200">Size</p>
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200">
+                <span>Size</span>
+                <input
+                  type="range"
+                  min="1"
+                  max={HIGHLIGHT_STYLES.length}
+                  step="1"
+                  value={highlightLevel}
+                  onChange={(event) => onHighlightStyleChange(HIGHLIGHT_STYLES[Number(event.target.value) - 1]?.id || 'medium')}
+                  className="w-full accent-sky-400"
+                />
+                <span className="w-4 text-right font-semibold text-white">{highlightLevel}</span>
+              </label>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-sm font-medium text-slate-200">Color</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {HIGHLIGHT_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() => onApplyHighlight(color.value)}
+                    className={`flex h-14 items-center justify-center rounded-2xl border transition ${
+                      highlightColor === color.value
+                        ? 'border-white bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.16)]'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10'
+                    } ${hasPendingSelection ? 'shadow-[0_0_0_4px_rgba(255,255,255,0.12)]' : ''}`}
+                    title={color.meaning ? `${color.name}: ${color.meaning}` : color.name}
+                    aria-label={color.name}
+                  >
+                    <span
+                      className="h-7 w-7 rounded-full"
+                      style={{ backgroundColor: color.value }}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

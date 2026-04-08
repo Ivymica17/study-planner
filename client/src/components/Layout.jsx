@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loadWorkspaceState } from '../utils/studyWorkspace';
 import StudyAssistant from './StudyAssistant';
+import BrandLogo from './BrandLogo';
 
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
@@ -65,10 +66,11 @@ export default function Layout() {
         }`}
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 lg:px-6">
-          <div>
-            <h1 className="text-2xl font-bold text-blue-600">Study Planner</h1>
-            <p className="mt-1 text-sm text-slate-500">Plan smarter, study faster.</p>
-          </div>
+          <BrandLogo
+            imageClassName="h-16 w-16"
+            titleClassName="text-2xl"
+            subtitle="Plan smarter, study faster."
+          />
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
@@ -114,10 +116,13 @@ export default function Layout() {
       <main className="min-h-screen flex-1 lg:ml-72">
         <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Study Planner</p>
-              <p className="text-xs text-slate-500">{user?.name || 'Student workspace'}</p>
-            </div>
+            <BrandLogo
+              className="gap-2"
+              imageClassName="h-10 w-10"
+              titleClassName="text-sm tracking-[0.18em]"
+              subtitleClassName="text-[11px]"
+              subtitle={user?.name || 'Student workspace'}
+            />
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}

@@ -1,6 +1,6 @@
-# Study Planner - AI-Powered Learning App
+# Metis AI - AI-Powered Learning App
 
-A clean MVP Study Planner with AI-powered module analysis and quiz generation.
+A clean MVP Metis AI app with AI-powered module analysis and quiz generation.
 
 ## Tech Stack
 

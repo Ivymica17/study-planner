@@ -1,0 +1,857 @@
+[2m12:30:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:31:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:32:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:33:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:34:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:35:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:36:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:37:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:38:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:39:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:40:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:41:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:42:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:43:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:44:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:45:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:46:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:47:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:48:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:49:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:50:30 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:51:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:52:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:53:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:54:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:55:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:56:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:57:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:58:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:59:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:00:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:01:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:02:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:03:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:04:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:05:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:06:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:07:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:08:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:09:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:10:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:11:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:12:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:13:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:14:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:15:07 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:16:10 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:07 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:51 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:51 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:53 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:53 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:54 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:54 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:55 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:55 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:56 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab2b4527ab3a02bba812c[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:17:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286/file[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:18:07 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:19:07 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:58:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:59:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:59:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:59:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:59:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:59:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m7:59:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules/69cab02371d6f0c2239e3286[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:00:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:01:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:02:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:03:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:04:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:05:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:06:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:07:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:08:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:09:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:10:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:11:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:12:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:13:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:14:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:15:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:16:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:17:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:18:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:19:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:20:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:21:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:22:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:23:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:24:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:25:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:26:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:27:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:28:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:29:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:30:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:31:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:32:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:33:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:34:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:35:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:36:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:37:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:38:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:39:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:40:16 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:41:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:42:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:43:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:44:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:45:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:46:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:47:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:48:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:49:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:50:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:51:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:52:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m8:53:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:22:09 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:23:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:24:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:25:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:26:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:27:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:22 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:22 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:22 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:23 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:23 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:28:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:05 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:06 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:07 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals/stats/quiz[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:07 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals/stats/quiz[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:08 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:08 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:08 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:08 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:08 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:08 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:10 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:10 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:29:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:30:36 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:31:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:32:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:33:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:34:35 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:36:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:37:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:38:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:39:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:40:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:41:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:42:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:43:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:44:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:45:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:46:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:47:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:48:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:49:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:50:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:51:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:52:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:53:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:54:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:55:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:56:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:57:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:58:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:59:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:00:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:01:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:02:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:03:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:04:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:05:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:06:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:07:32 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:08:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:09:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:10:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:11:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:12:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:13:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:14:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:15:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:16:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:17:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:18:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:19:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:20:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:21:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:22:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:23:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:24:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:25:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:26:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m12:27:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:34:33 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m1:36:31 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+^C^C

@@ -89,6 +89,7 @@ export default function PdfPageStage({
   const stageRef = useRef(null);
   const canvasRef = useRef(null);
   const draftStrokeRef = useRef(null);
+  const selectionFrameRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
 
   const canvasClassName = useMemo(() => {
@@ -117,6 +118,42 @@ export default function PdfPageStage({
     observer.observe(stage);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => () => {
+    if (selectionFrameRef.current) {
+      window.cancelAnimationFrame(selectionFrameRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTool !== 'select' && activeTool !== 'highlighter') {
+      return undefined;
+    }
+
+    const handlePointerUp = () => {
+      scheduleCommitSelection();
+    };
+
+    document.addEventListener('pointerup', handlePointerUp, true);
+    return () => {
+      document.removeEventListener('pointerup', handlePointerUp, true);
+    };
+  }, [activeTool, pageNumber, highlightColor]);
+
+  useEffect(() => {
+    if (activeTool !== 'select' && activeTool !== 'highlighter') {
+      return undefined;
+    }
+
+    const handleSelectionChange = () => {
+      scheduleCommitSelection();
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [activeTool, pageNumber, highlightColor]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -189,6 +226,18 @@ export default function PdfPageStage({
     onSelectionChange(selectionData);
   };
 
+  const scheduleCommitSelection = () => {
+    if (selectionFrameRef.current) {
+      window.cancelAnimationFrame(selectionFrameRef.current);
+    }
+
+    // Let the browser finish the text selection update before reading it.
+    selectionFrameRef.current = window.requestAnimationFrame(() => {
+      selectionFrameRef.current = null;
+      commitSelection();
+    });
+  };
+
   const handlePointerDown = (event) => {
     if (activeTool !== 'pen' && activeTool !== 'eraser') return;
     const stage = stageRef.current;
@@ -244,7 +293,6 @@ export default function PdfPageStage({
         <div
           ref={stageRef}
           className={`study-page-stage relative overflow-hidden rounded-[22px] bg-white ${stageCursorClassName}`}
-          onMouseUp={commitSelection}
         >
           <div className="pointer-events-none absolute inset-0 z-[5]">
             {highlights.map((highlight) => (
@@ -282,6 +330,7 @@ export default function PdfPageStage({
             pageNumber={pageNumber}
             scale={zoom / 100}
             renderAnnotationLayer={false}
+            renderTextLayer
             onRenderSuccess={onPageRenderSuccess}
             onRenderError={onPageRenderError}
             onRenderTextLayerSuccess={onPageRenderSuccess}
