@@ -570,6 +570,9 @@ export default function PdfStudyWorkspace({
                 hasHighlights={hasHighlights}
                 hasDrawings={hasDrawings}
                 hasPendingSelection={Boolean(pendingSelection)}
+                pendingSelectionTextLength={pendingSelection?.text?.length || 0}
+                pendingSelectionRectCount={pendingSelection?.rects?.length || 0}
+                currentHighlightCount={currentHighlights.length}
                 onPreviousPage={() => updateWorkspaceState((prev) => ({ ...prev, currentPage: clamp(currentPage - 1, 1, numPages) }))}
                 onNextPage={() => updateWorkspaceState((prev) => ({ ...prev, currentPage: clamp(currentPage + 1, 1, numPages) }))}
                 onZoomOut={() => updateWorkspaceState((prev) => ({ ...prev, zoom: clamp((prev.zoom || 100) - 10, 60, 180) }))}
@@ -744,6 +747,7 @@ export default function PdfStudyWorkspace({
                           brushColor={brushColor}
                           brushSize={brushSize}
                           highlightColor={highlightColor}
+                          highlightStyle={highlightStyle}
                           onSelectionChange={setPendingSelection}
                           onAddHighlight={handleAddHighlight}
                           onAddStroke={handleAddStroke}

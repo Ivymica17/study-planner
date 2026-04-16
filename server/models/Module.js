@@ -16,6 +16,14 @@ const moduleSchema = new mongoose.Schema({
     back: String,
     difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' }
   }],
+  wordChallenges: [{
+    word: String,
+    clue: String,
+    scenario: String,
+    difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+    topic: String,
+    sourceReference: String,
+  }],
   quizQuestions: [{
     question: String,
     options: [String],

@@ -146,14 +146,42 @@ export function normalizeClientRects(rects, containerRect) {
   const width = containerRect.width || 1;
   const height = containerRect.height || 1;
 
-  return rects
-    .filter((rect) => rect.width > 1 && rect.height > 1)
+  const normalized = rects
+    .filter((rect) => {
+      if (rect.width <= 1 || rect.height <= 1) return false;
+
+      // Ignore container-wide selection artifacts from the PDF text layer.
+      if (rect.width >= width * 0.98 && rect.height >= height * 0.2) return false;
+      if (rect.height >= height * 0.2) return false;
+      if ((rect.width * rect.height) >= width * height * 0.15) return false;
+
+      return true;
+    })
     .map((rect) => ({
       x: (rect.left - containerRect.left) / width,
       y: (rect.top - containerRect.top) / height,
       width: rect.width / width,
       height: rect.height / height,
     }));
+
+  const deduped = [];
+  const seen = new Set();
+
+  normalized.forEach((rect) => {
+    const key = [
+      rect.x.toFixed(4),
+      rect.y.toFixed(4),
+      rect.width.toFixed(4),
+      rect.height.toFixed(4),
+    ].join(':');
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(rect);
+    }
+  });
+
+  return deduped;
 }
 
 export function denormalizeRect(rect, width, height) {

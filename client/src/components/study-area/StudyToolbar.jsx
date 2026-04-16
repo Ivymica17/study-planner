@@ -53,6 +53,9 @@ export default function StudyToolbar({
   hasHighlights,
   hasDrawings,
   hasPendingSelection,
+  pendingSelectionTextLength,
+  pendingSelectionRectCount,
+  currentHighlightCount,
   onPreviousPage,
   onNextPage,
   onZoomOut,
@@ -173,7 +176,7 @@ export default function StudyToolbar({
                 <p className="mt-1 text-sm leading-5 text-slate-300">
                   {activeTool === 'remove-highlight'
                     ? 'Tap a saved highlight on the page to remove it.'
-                    : 'Pick a size and color, then drag across text.'}
+                    : 'Pick a color, then drag across the page to mark the text you want to highlight.'}
                 </p>
               </div>
             </div>
@@ -197,12 +200,25 @@ export default function StudyToolbar({
 
             <div className="min-w-0 flex-1">
               <p className="mb-2 text-sm font-medium text-slate-200">Color</p>
+              <p className="mb-3 text-xs text-slate-400">
+                {hasPendingSelection ? 'Selection detected.' : 'Drag on the PDF page to add a highlight.'}
+              </p>
+              <p className="mb-3 text-[11px] text-slate-500">
+                Debug: text {pendingSelectionTextLength} chars, rects {pendingSelectionRectCount}, saved {currentHighlightCount}
+              </p>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {HIGHLIGHT_COLORS.map((color) => (
                   <button
                     key={color.value}
                     type="button"
-                    onClick={() => onApplyHighlight(color.value)}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      onApplyHighlight(color.value);
+                    }}
+                    onTouchStart={(event) => {
+                      event.preventDefault();
+                      onApplyHighlight(color.value);
+                    }}
                     className={`flex h-14 items-center justify-center rounded-2xl border transition ${
                       highlightColor === color.value
                         ? 'border-white bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.16)]'

@@ -9,41 +9,21 @@ import {
 } from '../../utils/studyWorkspace';
 
 function extractPreciseSelectionRects(range, stage) {
-  const root = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
-    ? range.commonAncestorContainer.parentNode
-    : range.commonAncestorContainer;
+  const stageRect = stage.getBoundingClientRect();
 
-  if (!root) return [];
-
-  const rects = [];
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if (!node.textContent?.trim()) return NodeFilter.FILTER_REJECT;
-      if (!stage.contains(node.parentNode)) return NodeFilter.FILTER_REJECT;
-      if (typeof range.intersectsNode === 'function' && !range.intersectsNode(node)) {
-        return NodeFilter.FILTER_REJECT;
-      }
-      return NodeFilter.FILTER_ACCEPT;
-    },
+  return Array.from(range.getClientRects()).filter((rect) => {
+    if (rect.width <= 1 || rect.height <= 1) return false;
+    if (rect.right <= stageRect.left || rect.left >= stageRect.right) return false;
+    if (rect.bottom <= stageRect.top || rect.top >= stageRect.bottom) return false;
+    return true;
   });
+}
 
-  let currentNode = walker.nextNode();
-  while (currentNode) {
-    const nodeRange = document.createRange();
-    const startOffset = currentNode === range.startContainer ? range.startOffset : 0;
-    const endOffset = currentNode === range.endContainer ? range.endOffset : currentNode.textContent.length;
-
-    if (endOffset > startOffset) {
-      nodeRange.setStart(currentNode, startOffset);
-      nodeRange.setEnd(currentNode, endOffset);
-      rects.push(...Array.from(nodeRange.getClientRects()));
-    }
-
-    currentNode = walker.nextNode();
-  }
-
-  if (rects.length > 0) return rects;
-  return Array.from(range.getClientRects());
+function isNodeWithinStage(stage, node) {
+  if (!stage || !node) return false;
+  if (stage.contains(node)) return true;
+  const elementNode = node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
+  return Boolean(elementNode && stage.contains(elementNode));
 }
 
 function drawStroke(ctx, stroke, width, height) {
@@ -79,6 +59,7 @@ export default function PdfPageStage({
   brushColor,
   brushSize,
   highlightColor,
+  highlightStyle,
   onSelectionChange,
   onAddStroke,
   onAddHighlight,
@@ -89,8 +70,10 @@ export default function PdfPageStage({
   const stageRef = useRef(null);
   const canvasRef = useRef(null);
   const draftStrokeRef = useRef(null);
+  const draftHighlightRef = useRef(null);
   const selectionFrameRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const [draftHighlightRect, setDraftHighlightRect] = useState(null);
 
   const canvasClassName = useMemo(() => {
     if (activeTool === 'pen') return 'pointer-events-auto cursor-crosshair';
@@ -99,10 +82,24 @@ export default function PdfPageStage({
   }, [activeTool]);
 
   const stageCursorClassName = useMemo(() => {
-    if (activeTool === 'highlighter') return 'cursor-text';
+    if (activeTool === 'highlighter') return 'cursor-crosshair';
     if (activeTool === 'remove-highlight') return 'cursor-pointer';
     return '';
   }, [activeTool]);
+
+  const getMarkerHeight = () => {
+    switch (highlightStyle) {
+      case 'fine':
+        return 10;
+      case 'broad':
+        return 18;
+      case 'block':
+        return 24;
+      case 'medium':
+      default:
+        return 14;
+    }
+  };
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -126,7 +123,7 @@ export default function PdfPageStage({
   }, []);
 
   useEffect(() => {
-    if (activeTool !== 'select' && activeTool !== 'highlighter') {
+    if (activeTool !== 'select') {
       return undefined;
     }
 
@@ -135,13 +132,17 @@ export default function PdfPageStage({
     };
 
     document.addEventListener('pointerup', handlePointerUp, true);
+    document.addEventListener('mouseup', handlePointerUp, true);
+    document.addEventListener('touchend', handlePointerUp, true);
     return () => {
       document.removeEventListener('pointerup', handlePointerUp, true);
+      document.removeEventListener('mouseup', handlePointerUp, true);
+      document.removeEventListener('touchend', handlePointerUp, true);
     };
-  }, [activeTool, pageNumber, highlightColor]);
+  }, [activeTool, pageNumber]);
 
   useEffect(() => {
-    if (activeTool !== 'select' && activeTool !== 'highlighter') {
+    if (activeTool !== 'select') {
       return undefined;
     }
 
@@ -153,7 +154,7 @@ export default function PdfPageStage({
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
     };
-  }, [activeTool, pageNumber, highlightColor]);
+  }, [activeTool, pageNumber]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -191,13 +192,21 @@ export default function PdfPageStage({
     const selection = window.getSelection();
     const stage = stageRef.current;
     if (!selection || selection.rangeCount === 0 || !stage) {
-      onSelectionChange(null);
+      if (activeTool === 'select') {
+        onSelectionChange(null);
+      }
       return;
     }
 
     const range = selection.getRangeAt(0);
-    if (selection.isCollapsed || !stage.contains(range.commonAncestorContainer)) {
-      onSelectionChange(null);
+    const startInside = isNodeWithinStage(stage, range.startContainer);
+    const endInside = isNodeWithinStage(stage, range.endContainer);
+    const commonInside = isNodeWithinStage(stage, range.commonAncestorContainer);
+
+    if (selection.isCollapsed || (!commonInside && !startInside && !endInside)) {
+      if (activeTool === 'select') {
+        onSelectionChange(null);
+      }
       return;
     }
 
@@ -206,7 +215,9 @@ export default function PdfPageStage({
       stage.getBoundingClientRect(),
     );
     if (rects.length === 0) {
-      onSelectionChange(null);
+      if (activeTool === 'select') {
+        onSelectionChange(null);
+      }
       return;
     }
 
@@ -215,13 +226,6 @@ export default function PdfPageStage({
       text: selection.toString(),
       rects,
     };
-
-    if (activeTool === 'highlighter') {
-      onAddHighlight(pageNumber, selectionData, highlightColor);
-      onSelectionChange(null);
-      window.getSelection()?.removeAllRanges();
-      return;
-    }
 
     onSelectionChange(selectionData);
   };
@@ -239,6 +243,27 @@ export default function PdfPageStage({
   };
 
   const handlePointerDown = (event) => {
+    if (activeTool === 'highlighter') {
+      event.preventDefault();
+      const rect = stageRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const start = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+
+      draftHighlightRef.current = { start };
+      const markerHeight = getMarkerHeight();
+      setDraftHighlightRect({
+        left: start.x,
+        top: Math.max(0, start.y - markerHeight / 2),
+        width: 0,
+        height: markerHeight,
+      });
+      return;
+    }
+
     if (activeTool !== 'pen' && activeTool !== 'eraser') return;
     const stage = stageRef.current;
     if (!stage) return;
@@ -254,6 +279,27 @@ export default function PdfPageStage({
   };
 
   const handlePointerMove = (event) => {
+    if (activeTool === 'highlighter' && draftHighlightRef.current) {
+      event.preventDefault();
+      const rect = stageRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+
+      const { start } = draftHighlightRef.current;
+      const markerHeight = getMarkerHeight();
+      setDraftHighlightRect({
+        left: Math.min(start.x, current.x),
+        top: Math.max(0, start.y - markerHeight / 2),
+        width: Math.abs(current.x - start.x),
+        height: markerHeight,
+      });
+      return;
+    }
+
     if (!draftStrokeRef.current || (activeTool !== 'pen' && activeTool !== 'eraser')) return;
 
     const point = getCanvasPoint(event);
@@ -269,6 +315,45 @@ export default function PdfPageStage({
   };
 
   const finalizeStroke = (event) => {
+    if (activeTool === 'highlighter' && draftHighlightRef.current) {
+      event.preventDefault();
+      const rect = stageRef.current?.getBoundingClientRect();
+      if (!rect) {
+        draftHighlightRef.current = null;
+        setDraftHighlightRect(null);
+        return;
+      }
+
+      const current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+      const { start } = draftHighlightRef.current;
+      const markerHeight = getMarkerHeight();
+      const left = Math.min(start.x, current.x);
+      const top = Math.max(0, start.y - markerHeight / 2);
+      const width = Math.abs(current.x - start.x);
+      const height = markerHeight;
+
+      draftHighlightRef.current = null;
+      setDraftHighlightRect(null);
+
+      if (width < 6) return;
+
+      onAddHighlight(pageNumber, {
+        pageNumber,
+        text: '',
+        rects: [{
+          x: left / stageSize.width,
+          y: top / stageSize.height,
+          width: width / stageSize.width,
+          height: height / stageSize.height,
+        }],
+      }, highlightColor);
+      onSelectionChange(null);
+      return;
+    }
+
     if (!draftStrokeRef.current || (activeTool !== 'pen' && activeTool !== 'eraser')) return;
 
     if (canvasRef.current?.hasPointerCapture(event.pointerId)) {
@@ -324,6 +409,19 @@ export default function PdfPageStage({
                 })}
               </div>
             ))}
+            {draftHighlightRect && (
+              <div
+                className="absolute rounded-[6px] mix-blend-multiply"
+                style={{
+                  left: `${draftHighlightRect.left}px`,
+                  top: `${draftHighlightRect.top}px`,
+                  width: `${Math.max(draftHighlightRect.width, 2)}px`,
+                  height: `${draftHighlightRect.height}px`,
+                  backgroundColor: highlightColor,
+                  opacity: getHighlightStyle(highlightStyle).opacity,
+                }}
+              />
+            )}
           </div>
 
           <Page
@@ -341,6 +439,13 @@ export default function PdfPageStage({
           <canvas
             ref={canvasRef}
             className={`absolute inset-0 z-[9] ${canvasClassName}`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={finalizeStroke}
+            onPointerCancel={finalizeStroke}
+          />
+          <div
+            className={`absolute inset-0 z-[8] ${activeTool === 'highlighter' ? 'pointer-events-auto' : 'pointer-events-none'}`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={finalizeStroke}

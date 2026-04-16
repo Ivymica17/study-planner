@@ -1,0 +1,420 @@
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:53 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:55 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:55 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:29:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:03 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:04 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /flashcards[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:04 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /flashcards[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:05 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:05 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:31 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:34 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /flashcards[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:34 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /flashcards[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:36 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:36 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:30:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:14 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:26 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:26 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:26 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:26 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:27 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:27 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /goals[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:28 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:28 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /modules[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:31:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m10:32:56 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m11:00:44 PM[22m [31m[1m[vite][22m[39m Pre-transform error: E:\project\study-planner\client\src\pages\Game.jsx: Unexpected token (223:0)
+
+[0m [90m 221 |[39m     [recentHistory[33m,[39m wordSourceMode][33m,[39m
+ [90m 222 |[39m   )[33m;[39m
+[31m[1m>[22m[39m[90m 223 |[39m
+ [90m     |[39m [31m[1m^[22m[39m[0m
+[2m11:00:44 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: E:\project\study-planner\client\src\pages\Game.jsx: Unexpected token (223:0)
+
+[0m [90m 221 |[31m     [recentHistory[33m,[31m wordSourceMode][33m,[31m
+ [90m 222 |[31m   )[33m;[31m
+[31m[1m>[22m[31m[90m 223 |[31m
+ [90m     |[31m [31m[1m^[22m[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mE:/project/study-planner/client/src/pages/Game.jsx[39m:223:0
+      at constructor (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.unexpected (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6619:16)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11442:22)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at JSXParserMixin.parseExpressionBase (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10784:23)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:39
+      at JSXParserMixin.allowInAnd (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:17)
+      at JSXParserMixin.parseStatementContent (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12895:23)
+      at JSXParserMixin.parseStatementLike (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseFunctionBodyAndFinish (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12086:10)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13445:12
+      at JSXParserMixin.withSmartMixTopicForbiddingContext (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12403:14)
+      at JSXParserMixin.parseFunction (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13444:10)
+      at JSXParserMixin.parseExportDefaultExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13907:19)
+      at JSXParserMixin.parseExport (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13828:25)
+      at JSXParserMixin.parseStatementContent (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12878:27)
+      at JSXParserMixin.parseStatementLike (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (E:\project\study-planner\client\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (E:\project\study-planner\client\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (E:\project\study-planner\client\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (E:\project\study-planner\client\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (E:\project\study-planner\client\node_modules\gensync\index.js:261:32)
+      at E:\project\study-planner\client\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (E:\project\study-planner\client\node_modules\gensync\index.js:223:11)
+      at E:\project\study-planner\client\node_modules\gensync\index.js:189:28
+[2m11:01:24 PM[22m [31m[1m[vite][22m[39m Pre-transform error: E:\project\study-planner\client\src\pages\Game.jsx: Unexpected token (449:0)
+
+[0m [90m 447 |[39m       [33m:[39m [32m`Hint: ${currentItem.hint || currentItem.clue} Category: ${currentItem.category || currentItem.topic}. Source: ${currentItem.source || currentItem.sourceReference}.`[39m
+ [90m 448 |[39m     [33m:[39m [32m''[39m[33m;[39m
+[31m[1m>[22m[39m[90m 449 |[39m
+ [90m     |[39m [31m[1m^[22m[39m[0m
+[2m11:01:24 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: E:\project\study-planner\client\src\pages\Game.jsx: Unexpected token (449:0)
+
+[0m [90m 447 |[31m       [33m:[31m [32m`Hint: ${currentItem.hint || currentItem.clue} Category: ${currentItem.category || currentItem.topic}. Source: ${currentItem.source || currentItem.sourceReference}.`[31m
+ [90m 448 |[31m     [33m:[31m [32m''[31m[33m;[31m
+[31m[1m>[22m[31m[90m 449 |[31m
+ [90m     |[31m [31m[1m^[22m[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mE:/project/study-planner/client/src/pages/Game.jsx[39m:449:0
+      at constructor (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.unexpected (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6619:16)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11442:22)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at JSXParserMixin.parseExpressionBase (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10784:23)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:39
+      at JSXParserMixin.allowInAnd (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:17)
+      at JSXParserMixin.parseStatementContent (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12895:23)
+      at JSXParserMixin.parseStatementLike (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseFunctionBodyAndFinish (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12086:10)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13445:12
+      at JSXParserMixin.withSmartMixTopicForbiddingContext (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12403:14)
+      at JSXParserMixin.parseFunction (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13444:10)
+      at JSXParserMixin.parseExportDefaultExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13907:19)
+      at JSXParserMixin.parseExport (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13828:25)
+      at JSXParserMixin.parseStatementContent (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12878:27)
+      at JSXParserMixin.parseStatementLike (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (E:\project\study-planner\client\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (E:\project\study-planner\client\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (E:\project\study-planner\client\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (E:\project\study-planner\client\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (E:\project\study-planner\client\node_modules\gensync\index.js:261:32)
+      at E:\project\study-planner\client\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (E:\project\study-planner\client\node_modules\gensync\index.js:223:11)
+      at E:\project\study-planner\client\node_modules\gensync\index.js:189:28
+[2m11:02:14 PM[22m [31m[1m[vite][22m[39m Pre-transform error: E:\project\study-planner\client\src\pages\Game.jsx: Unterminated JSX contents. (629:16)
+
+[0m [90m 627 |[39m               [33m<[39m[33mp[39m className[33m=[39m[32m"mt-2 text-3xl font-semibold text-slate-900"[39m[33m>[39m{timerEnabled [33m&&[39m gameStarted [33m?[39m timer [33m:[39m [32m'--'[39m}[33m<[39m[33m/[39m[33mp[39m[33m>[39m
+ [90m 628 |[39m             [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+[31m[1m>[22m[39m[90m 629 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m                 [31m[1m^[22m[39m
+ [90m 630 |[39m[0m
+[2m11:02:14 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: E:\project\study-planner\client\src\pages\Game.jsx: Unterminated JSX contents. (629:16)
+
+[0m [90m 627 |[31m               [33m<[31m[33mp[31m className[33m=[31m[32m"mt-2 text-3xl font-semibold text-slate-900"[31m[33m>[31m{timerEnabled [33m&&[31m gameStarted [33m?[31m timer [33m:[31m [32m'--'[31m}[33m<[31m[33m/[31m[33mp[31m[33m>[31m
+ [90m 628 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 629 |[31m           [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m                 [31m[1m^[22m[31m
+ [90m 630 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mE:/project/study-planner/client/src/pages/Game.jsx[39m:629:16
+      at constructor (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.jsxReadToken (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4448:20)
+      at JSXParserMixin.getTokenFromCode (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4774:12)
+      at JSXParserMixin.nextToken (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eat (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:5696:12)
+      at JSXParserMixin.expect (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6898:15)
+      at JSXParserMixin.jsxParseClosingElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4680:10)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4695:37)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12426:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12493:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11675:28)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at JSXParserMixin.parseExpressionBase (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10784:23)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:39
+      at JSXParserMixin.allowInAnd (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12421:16)
+      at JSXParserMixin.parseExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:17)
+      at JSXParserMixin.parseReturnStatement (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13142:28)
+      at JSXParserMixin.parseStatementContent (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12798:21)
+      at JSXParserMixin.parseStatementLike (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseFunctionBodyAndFinish (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12086:10)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:13445:12
+[2m11:02:52 PM[22m [31m[1m[vite][22m[39m Pre-transform error: E:\project\study-planner\client\src\pages\Game.jsx: Unterminated JSX contents. (754:21)
+
+[0m [90m 752 |[39m                   [33m<[39m[33m/[39m[33mbutton[39m[33m>[39m
+ [90m 753 |[39m                 [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+[31m[1m>[22m[39m[90m 754 |[39m               [33m<[39m[33m/[39m[33mform[39m[33m>[39m
+ [90m     |[39m                      [31m[1m^[22m[39m
+ [90m 755 |[39m[0m
+[2m11:02:52 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: E:\project\study-planner\client\src\pages\Game.jsx: Unterminated JSX contents. (754:21)
+
+[0m [90m 752 |[31m                   [33m<[31m[33m/[31m[33mbutton[31m[33m>[31m
+ [90m 753 |[31m                 [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 754 |[31m               [33m<[31m[33m/[31m[33mform[31m[33m>[31m
+ [90m     |[31m                      [31m[1m^[22m[31m
+ [90m 755 |[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mE:/project/study-planner/client/src/pages/Game.jsx[39m:754:21
+      at constructor (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6599:19)
+      at JSXParserMixin.jsxReadToken (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4448:20)
+      at JSXParserMixin.getTokenFromCode (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4774:12)
+      at JSXParserMixin.nextToken (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eat (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:5696:12)
+      at JSXParserMixin.expect (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:6898:15)
+      at JSXParserMixin.jsxParseClosingElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4680:10)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4695:37)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12426:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12493:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11675:28)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11331:23)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4764:20)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at JSXParserMixin.parseConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10893:29)
+      at JSXParserMixin.parseMaybeConditional (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10885:17)
+      at JSXParserMixin.parseMaybeAssign (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10831:21)
+      at JSXParserMixin.parseExpressionBase (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10784:23)
+      at E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:39
+      at JSXParserMixin.allowInAnd (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:12426:12)
+      at JSXParserMixin.parseExpression (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:10780:17)
+      at JSXParserMixin.jsxParseExpressionContainer (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4632:31)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4711:36)
+      at JSXParserMixin.jsxParseElementAt (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4698:32)
+      at JSXParserMixin.jsxParseElement (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4749:17)
+      at JSXParserMixin.parseExprAtom (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:4759:19)
+      at JSXParserMixin.parseExprSubscripts (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11081:23)
+      at JSXParserMixin.parseUpdate (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (E:\project\study-planner\client\node_modules\@babel\parser\lib\index.js:11046:23)

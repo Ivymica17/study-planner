@@ -9,6 +9,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/modules', label: 'Modules' },
   { to: '/flashcards', label: 'Flashcards' },
+  { to: '/game', label: 'Game 🎮' },
   { to: '/study-area', label: 'Study Area' },
   { to: '/tasks', label: 'Tasks' },
   { to: '/quiz-stats', label: 'Quiz Stats' },
@@ -19,10 +20,19 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isGameRoute = location.pathname === '/game';
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle('game-mode-active', isGameRoute);
+
+    return () => {
+      document.body.classList.remove('game-mode-active');
+    };
+  }, [isGameRoute]);
 
   const handleLogout = () => {
     logout();
@@ -50,8 +60,8 @@ export default function Layout() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-gray-100 lg:flex">
-      {sidebarOpen && (
+    <div className={`layout-shell min-h-screen bg-gray-100 lg:flex ${isGameRoute ? 'layout-shell-game' : ''}`}>
+      {sidebarOpen && !isGameRoute && (
         <button
           type="button"
           aria-label="Close navigation"
@@ -61,8 +71,13 @@ export default function Layout() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[18rem] max-w-[85vw] flex-col border-r border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.16)] transition-transform duration-200 lg:translate-x-0 lg:shadow-lg ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        aria-hidden={isGameRoute}
+        className={`layout-sidebar fixed inset-y-0 left-0 z-50 flex w-[18rem] max-w-[85vw] flex-col border-r border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.16)] transition-[transform,opacity] duration-200 ease-out lg:shadow-lg ${
+          isGameRoute
+            ? 'pointer-events-none -translate-x-full opacity-0 lg:-translate-x-full'
+            : sidebarOpen
+              ? 'translate-x-0 opacity-100'
+              : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100'
         }`}
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 lg:px-6">
@@ -113,8 +128,16 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="min-h-screen flex-1 lg:ml-72">
-        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+      <main
+        className={`layout-main min-h-screen flex-1 ${
+          isGameRoute ? 'lg:ml-0' : 'lg:ml-72'
+        }`}
+      >
+        <div
+          className={`sticky top-0 z-30 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur transition-[transform,opacity] duration-150 lg:hidden ${
+            isGameRoute ? 'pointer-events-none -translate-y-full opacity-0' : 'opacity-100'
+          }`}
+        >
           <div className="flex items-center justify-between gap-3">
             <BrandLogo
               className="gap-2"
@@ -125,6 +148,7 @@ export default function Layout() {
             />
             <button
               type="button"
+              disabled={isGameRoute}
               onClick={() => setSidebarOpen(true)}
               className="min-h-[48px] rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-700"
             >
@@ -133,13 +157,21 @@ export default function Layout() {
           </div>
         </div>
 
-        <div className="px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-8 lg:pt-8">
+        <div
+          className={`layout-content ${
+            isGameRoute ? 'px-0 pb-0 pt-0 sm:px-0 lg:px-0 lg:pb-0 lg:pt-0' : 'px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-8 lg:pt-8'
+          }`}
+        >
           <Outlet />
         </div>
 
-        <StudyAssistant />
+        {!isGameRoute && <StudyAssistant />}
 
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+        <div
+          className={`fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] backdrop-blur transition-[transform,opacity] duration-150 lg:hidden ${
+            isGameRoute ? 'pointer-events-none translate-y-full opacity-0' : 'opacity-100'
+          }`}
+        >
           <button
             type="button"
             onClick={() => navigate(stickyStudyTarget)}

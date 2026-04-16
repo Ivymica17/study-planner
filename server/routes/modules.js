@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import pdfParse from 'pdf-parse';
 import OpenAI from 'openai';
+import mongoose from 'mongoose';
 import Module from '../models/Module.js';
 import Flashcard from '../models/Flashcard.js';
 import QuizAttempt from '../models/QuizAttempt.js';
@@ -11,6 +12,11 @@ import {
   mapDifficultyLabel,
   normalizeGenerationOptions,
 } from '../utils/generationProfile.js';
+import {
+  EXAM_WORD_CHALLENGE_ITEMS,
+  FUN_WORD_CHALLENGE_ITEMS,
+  GENERAL_WORD_CHALLENGE_ITEMS,
+} from '../utils/wordChallengeCatalog.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -21,6 +27,8 @@ if (process.env.OPENAI_API_KEY?.trim()) {
 }
 
 const SUMMARY_PROMPT = 'Summarize this study material into bullet points. Highlight key concepts clearly.';
+const WORD_SOURCE_MODES = new Set(['study', 'general', 'exam', 'fun']);
+const isValidModuleId = (value) => mongoose.isValidObjectId(String(value || '').trim());
 
 const formatOpenAIError = (err) => {
   const status = err?.status ?? err?.code;
@@ -1498,6 +1506,542 @@ const generateFallbackQuiz = (text) => {
   return questions.slice(0, 8);
 };
 
+const normalizeChallengeDifficulty = (value, fallback = 'medium') => {
+  const normalized = String(value || fallback).trim().toLowerCase();
+  if (normalized === 'easy' || normalized === 'medium' || normalized === 'hard') {
+    return normalized;
+  }
+  return fallback;
+};
+
+const normalizeChallengeWord = (value) =>
+  String(value || '')
+    .replace(/[^a-zA-Z0-9\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const normalizeWordSourceMode = (value = 'study') => {
+  const normalized = String(value || 'study').trim().toLowerCase();
+  return WORD_SOURCE_MODES.has(normalized) ? normalized : 'study';
+};
+
+const WORD_CHALLENGE_SESSION_MIN = 5;
+const WORD_CHALLENGE_SESSION_TARGET = 8;
+
+const getStaticWordChallengeCatalog = (mode) => {
+  if (mode === 'general') return GENERAL_WORD_CHALLENGE_ITEMS;
+  if (mode === 'exam') return EXAM_WORD_CHALLENGE_ITEMS;
+  if (mode === 'fun') return FUN_WORD_CHALLENGE_ITEMS;
+  return [];
+};
+
+const buildCatalogWordChallengeItems = (mode, difficulty = '') => {
+  const normalizedDifficulty = difficulty ? normalizeChallengeDifficulty(difficulty, '') : '';
+
+  return getStaticWordChallengeCatalog(mode)
+    .filter((item) => !normalizedDifficulty || item.difficulty === normalizedDifficulty)
+    .map((item, index) => ({
+      id: `${mode}-${normalizeForCompare(item.word)}-${index}`,
+      moduleId: null,
+      moduleTitle:
+        mode === 'general'
+          ? 'General Mode'
+          : mode === 'exam'
+            ? 'Exam Mode'
+            : 'Fun Mode',
+      word: item.word,
+      clue: item.hint,
+      hint: item.hint,
+      scenario: buildWordChallengeScenario(item.word, item.hint, 'en'),
+      difficulty: item.difficulty,
+      topic: item.category,
+      category: item.category,
+      source: item.source,
+      sourceReference: item.source,
+      wordSourceMode: mode,
+    }));
+};
+
+const shuffleItems = (items = []) =>
+  [...items].sort(() => Math.random() - 0.5);
+
+const buildWordChallengeItemId = (prefix, word, index) =>
+  `${prefix}-${normalizeForCompare(word)}-${index}`;
+
+const dedupeWordChallengeSessionItems = (items = [], excludeWords = []) => {
+  const excluded = new Set(
+    excludeWords
+      .map((word) => normalizeForCompare(word))
+      .filter(Boolean),
+  );
+  const seen = new Set();
+
+  return items.filter((item) => {
+    const wordKey = normalizeForCompare(item?.word);
+    if (!wordKey || excluded.has(wordKey) || seen.has(wordKey)) return false;
+    seen.add(wordKey);
+    return true;
+  });
+};
+
+const normalizeWordChallengeCategory = (value, fallback = 'General Vocabulary') => {
+  const cleaned = cleanSentenceText(value || fallback);
+  return cleaned || fallback;
+};
+
+const toSessionWordChallengeItem = (item, index, context = {}) => {
+  const word = normalizeChallengeWord(item?.word || item?.topic);
+  const difficulty = normalizeChallengeDifficulty(item?.difficulty, context.difficulty || 'medium');
+  const category = normalizeWordChallengeCategory(
+    item?.category || item?.topic || context.category || 'General Vocabulary',
+    context.category || 'General Vocabulary',
+  );
+  const hint = shortenAtWordBoundary(
+    toCompleteSentence(
+      cleanSentenceText(
+        item?.hint || item?.clue || buildWordChallengeClue(word, item?.detail || category, difficulty, context.language || 'en'),
+      ),
+    ),
+    170,
+  );
+
+  return {
+    id: buildWordChallengeItemId(context.idPrefix || context.mode || 'session', word, index),
+    moduleId: context.moduleId ?? null,
+    moduleTitle: context.moduleTitle || null,
+    word,
+    clue: hint,
+    hint,
+    scenario: shortenAtWordBoundary(
+      toCompleteSentence(
+        cleanSentenceText(
+          item?.scenario || buildWordChallengeScenario(word, item?.detail || hint, context.language || 'en'),
+        ),
+      ),
+      190,
+    ),
+    difficulty,
+    topic: category,
+    category,
+    source: context.source || item?.source || item?.sourceReference || context.moduleTitle || 'AI Session',
+    sourceReference: item?.sourceReference || context.moduleTitle || context.source || 'AI Session',
+    wordSourceMode: context.mode || 'general',
+  };
+};
+
+const buildSessionFallbackItems = ({
+  mode = 'general',
+  difficulty = '',
+  limit = WORD_CHALLENGE_SESSION_TARGET,
+  excludeWords = [],
+  moduleId = null,
+  moduleTitle = null,
+} = {}) => {
+  const fallbackMode = mode === 'study' ? 'general' : mode;
+  const catalogItems = shuffleItems(buildCatalogWordChallengeItems(fallbackMode, difficulty));
+  const deduped = dedupeWordChallengeSessionItems(catalogItems, excludeWords).slice(0, limit);
+
+  return deduped.map((item, index) => ({
+    ...item,
+    id: buildWordChallengeItemId(`${mode}-fallback`, item.word, index),
+    moduleId,
+    moduleTitle,
+    source: mode === 'study' ? 'Study Mode Fallback' : item.source,
+    sourceReference: mode === 'study' ? (moduleTitle || 'Study Mode Fallback') : item.sourceReference,
+    wordSourceMode: mode,
+  }));
+};
+
+const buildEmergencySessionFallbackItems = ({ excludeWords = [], limit = WORD_CHALLENGE_SESSION_TARGET } = {}) => {
+  const emergencyPool = shuffleItems([
+    ...buildCatalogWordChallengeItems('general'),
+    ...buildCatalogWordChallengeItems('exam'),
+    ...buildCatalogWordChallengeItems('fun'),
+  ]);
+
+  return dedupeWordChallengeSessionItems(emergencyPool, excludeWords)
+    .slice(0, limit)
+    .map((item, index) => ({
+      ...item,
+      id: buildWordChallengeItemId('emergency-fallback', item.word, index),
+      wordSourceMode: item.wordSourceMode || 'general',
+      source: item.source || 'Fallback Session',
+      sourceReference: item.sourceReference || 'Fallback Session',
+    }));
+};
+
+const buildStudySessionItems = (modules = [], difficulty = '', excludeWords = [], limit = WORD_CHALLENGE_SESSION_TARGET) => {
+  const moduleItems = modules.flatMap((module) => {
+    const language = detectContentLanguage(module.originalText, module.title);
+    const sourceItems = Array.isArray(module.wordChallenges) && module.wordChallenges.length > 0
+      ? module.wordChallenges
+      : buildLocalWordChallenges(
+          module.originalText,
+          module.keyConcepts || [],
+          module.flashcards || [],
+          module.quizQuestions || [],
+          module.title,
+          language,
+        );
+
+    return sourceItems
+      .filter((item) => !difficulty || item.difficulty === difficulty)
+      .map((item, index) =>
+        toSessionWordChallengeItem(item, index, {
+          mode: 'study',
+          moduleId: String(module._id),
+          moduleTitle: module.title,
+          source: module.title,
+          idPrefix: `study-${module._id}`,
+          language,
+        }),
+      );
+  });
+
+  return dedupeWordChallengeSessionItems(shuffleItems(moduleItems), excludeWords).slice(0, limit);
+};
+
+const collectModuleWordExclusions = (modules = []) =>
+  dedupeWordChallengeSessionItems(
+    modules.flatMap((module) =>
+      (Array.isArray(module.wordChallenges) ? module.wordChallenges : []).map((item) => ({
+        word: item?.word,
+      }))
+    )
+  ).map((item) => item.word);
+
+const generateSessionWordsWithAI = async ({
+  mode = 'general',
+  difficulty = '',
+  excludeWords = [],
+  modules = [],
+  requestedModuleId = '',
+  limit = WORD_CHALLENGE_SESSION_TARGET,
+} = {}) => {
+  if (!openai) return [];
+
+  const moduleContext = modules
+    .map((module) => {
+      const language = detectContentLanguage(module.originalText, module.title);
+      const concepts = (module.keyConcepts || []).slice(0, 6).join(', ');
+      const sourceText = stripPdfNoise(module.originalText).slice(0, 1200);
+      return [
+        `Module title: ${module.title}`,
+        `Detected language: ${language}`,
+        `Key concepts: ${concepts || 'None provided'}`,
+        `Source excerpt: ${sourceText || 'No source text available.'}`,
+      ].join('\n');
+    })
+    .join('\n\n');
+
+  const modeInstructions =
+    mode === 'study'
+      ? modules.length > 0
+        ? 'Use only the uploaded modules as the source for terms. Do not invent unrelated general vocabulary.'
+        : 'No modules are available. Return no items.'
+      : mode === 'exam'
+        ? 'Generate academic or exam-oriented vocabulary. Make the hints sound scenario-based when appropriate.'
+        : mode === 'fun'
+          ? 'Generate playful, engaging words from animals, objects, internet culture, nature, or technology.'
+          : 'Generate common vocabulary words that are useful in everyday reading and conversation.';
+
+  const prompt = [
+    'Return JSON only with one top-level key: "items".',
+    `Generate ${Math.max(limit, WORD_CHALLENGE_SESSION_MIN)} unique word challenge items.`,
+    'Each item must include exactly these keys: word, hint, difficulty, category.',
+    'Rules:',
+    '- Never return an empty array.',
+    '- Avoid repeating or closely similar words.',
+    '- difficulty must be Easy, Medium, or Hard.',
+    '- hint should be concise and helpful.',
+    '- category should be short and learner-friendly.',
+    mode === 'study' ? '- Every word must come from the uploaded modules.' : '',
+    modeInstructions,
+    difficulty ? `Focus on difficulty: ${difficulty}.` : 'Mix Easy, Medium, and Hard difficulties.',
+    excludeWords.length > 0 ? `Do not use these words: ${excludeWords.join(', ')}` : 'No excluded words were provided.',
+    moduleContext ? `Module context:\n${moduleContext}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = response.choices?.[0]?.message?.content || '';
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return [];
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const items = Array.isArray(parsed?.items) ? parsed.items : [];
+    return dedupeWordChallengeSessionItems(
+      items.map((item, index) =>
+        toSessionWordChallengeItem(item, index, {
+          mode,
+          moduleId: modules.length === 1 ? String(modules[0]._id) : (mode === 'study' ? requestedModuleId || null : null),
+          moduleTitle: modules.length === 1 ? modules[0].title : null,
+          source: mode === 'study' ? 'AI Study Session' : 'AI Session',
+          category:
+            mode === 'exam'
+              ? 'Academic Term'
+              : mode === 'fun'
+                ? 'Fun Pick'
+                : 'General Vocabulary',
+          language:
+            modules.length === 1
+              ? detectContentLanguage(modules[0].originalText, modules[0].title)
+              : 'en',
+          idPrefix: `${mode}-ai`,
+          difficulty,
+        }),
+      ),
+      excludeWords,
+    ).slice(0, limit);
+  } catch (error) {
+    console.error('Session word generation failed:', error.message);
+    return [];
+  }
+};
+
+const splitConceptEntry = (concept) => {
+  const raw = cleanSentenceText(concept || '');
+  const parts = raw.split(/:\s+(.+)/);
+  return {
+    topic: cleanSentenceText(parts[0] || ''),
+    detail: cleanSentenceText(parts[1] || parts[0] || ''),
+  };
+};
+
+const buildWordChallengeClue = (word, detail, difficulty = 'medium', language = 'en') => {
+  const concept = String(word || '').trim();
+  const explanation = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(detail || concept)), 150);
+
+  if (isTagalog(language)) {
+    if (difficulty === 'easy') {
+      return explanation || `Tumutukoy ito sa konseptong ${concept.toLowerCase()}.`;
+    }
+
+    if (difficulty === 'hard') {
+      return `Sa isang sitwasyong pang-akademiko, aling keyword ang tumutukoy sa ideyang ito: ${explanation || concept}?`;
+    }
+
+    return `Aling terminong pang-aralin ang inilalarawan ng pahiwatig na ito: ${explanation || concept}?`;
+  }
+
+  if (difficulty === 'easy') {
+    return explanation || `This term refers to ${concept.toLowerCase()}.`;
+  }
+
+  if (difficulty === 'hard') {
+    return `In a short exam-style situation, which keyword matches this idea: ${explanation || concept}?`;
+  }
+
+  return `Which study term matches this reworded clue: ${explanation || concept}?`;
+};
+
+const buildWordChallengeScenario = (word, detail, language = 'en') => {
+  const concept = String(word || '').trim();
+  const explanation = shortenAtWordBoundary(toCompleteSentence(cleanSentenceText(detail || concept)), 160);
+
+  if (isTagalog(language)) {
+    return `Isang mag-aaral ang kailangang tukuyin ang terminong pinakaangkop sa prinsipyong ito: ${explanation || concept}. Ano ang keyword?`;
+  }
+
+  return `A student is reviewing a short scenario built around this idea: ${explanation || concept}. Which keyword best fits?`;
+};
+
+const finalizeWordChallenges = (items = [], moduleTitle = '', limit = 18, language = 'en') => {
+  const seen = new Set();
+  const finalized = [];
+
+  items.forEach((item) => {
+    const word = normalizeChallengeWord(item?.word || item?.topic);
+    const wordKey = normalizeForCompare(word);
+    if (!word || word.length < 3 || word.length > 40 || seen.has(wordKey)) return;
+    if (!/[a-z]/i.test(word)) return;
+
+    seen.add(wordKey);
+
+    const difficulty = normalizeChallengeDifficulty(item?.difficulty);
+    const topic = cleanSentenceText(item?.topic || word);
+    const clue = shortenAtWordBoundary(
+      toCompleteSentence(
+        cleanSentenceText(
+          item?.clue || buildWordChallengeClue(word, item?.detail || topic, difficulty, language),
+        ),
+      ),
+      170,
+    );
+    const scenario = shortenAtWordBoundary(
+      toCompleteSentence(
+        cleanSentenceText(
+          item?.scenario || buildWordChallengeScenario(word, item?.detail || topic, language),
+        ),
+      ),
+      190,
+    );
+
+    finalized.push({
+      word,
+      clue,
+      scenario,
+      difficulty,
+      topic: topic || word,
+      sourceReference: cleanSentenceText(item?.sourceReference || moduleTitle || 'Uploaded module'),
+    });
+  });
+
+  return finalized.slice(0, limit);
+};
+
+const buildLocalWordChallenges = (
+  text,
+  keyConcepts = [],
+  flashcards = [],
+  quizQuestions = [],
+  moduleTitle = '',
+  language = 'en',
+) => {
+  const conceptItems = keyConcepts
+    .map((concept, index) => {
+      const parsed = splitConceptEntry(concept);
+      const detailSource =
+        parsed.detail
+        || flashcards[index]?.back
+        || quizQuestions[index]?.correctExplanation
+        || flashcards[index]?.front
+        || parsed.topic;
+      const difficulty = index % 3 === 0 ? 'easy' : index % 3 === 1 ? 'medium' : 'hard';
+
+      return {
+        word: parsed.topic,
+        topic: parsed.topic,
+        detail: detailSource,
+        clue: buildWordChallengeClue(parsed.topic, detailSource, difficulty, language),
+        scenario:
+          difficulty === 'hard'
+            ? buildWordChallengeScenario(parsed.topic, detailSource, language)
+            : buildWordChallengeScenario(parsed.topic, detailSource, language),
+        difficulty,
+        sourceReference: moduleTitle || 'Uploaded module',
+      };
+    })
+    .filter((item) => item.word);
+
+  const sentenceItems = sentenceParts(text)
+    .slice(0, 9)
+    .map((sentence, index) => {
+      const topic = conceptTitleFromLine(sentence);
+      const difficulty = index % 3 === 0 ? 'easy' : index % 3 === 1 ? 'medium' : 'hard';
+      return {
+        word: topic,
+        topic: topic || `Concept ${index + 1}`,
+        detail: sentence,
+        clue: buildWordChallengeClue(topic, sentence, difficulty, language),
+        scenario: buildWordChallengeScenario(topic, sentence, language),
+        difficulty,
+        sourceReference: moduleTitle || 'Uploaded module',
+      };
+    })
+    .filter((item) => item.word);
+
+  const fallbackTopic = normalizeChallengeWord(moduleTitle);
+  const fallbackItems = fallbackTopic
+    ? [
+        {
+          word: fallbackTopic,
+          topic: fallbackTopic,
+          detail: summarizeLocally(text),
+          clue: buildWordChallengeClue(fallbackTopic, summarizeLocally(text), 'easy', language),
+          scenario: buildWordChallengeScenario(fallbackTopic, summarizeLocally(text), language),
+          difficulty: 'easy',
+          sourceReference: moduleTitle,
+        },
+      ]
+    : [];
+
+  return finalizeWordChallenges(
+    [...conceptItems, ...sentenceItems, ...fallbackItems],
+    moduleTitle,
+    18,
+    language,
+  );
+};
+
+const generateWordChallengesWithAI = async (
+  text,
+  keyConcepts = [],
+  flashcards = [],
+  quizQuestions = [],
+  generationOptions = {},
+) => {
+  const moduleTitle = generationOptions.title || 'Uploaded module';
+  const language = generationOptions.language || detectContentLanguage(text, moduleTitle);
+  const localFallback = buildLocalWordChallenges(
+    text,
+    keyConcepts,
+    flashcards,
+    quizQuestions,
+    moduleTitle,
+    language,
+  );
+
+  if (!openai) {
+    return localFallback;
+  }
+
+  const conceptContext = keyConcepts
+    .map((concept) => {
+      const parsed = splitConceptEntry(concept);
+      return `${parsed.topic}: ${parsed.detail}`;
+    })
+    .filter(Boolean)
+    .slice(0, 12)
+    .join('\n');
+
+  const prompt = [
+    'Create a JSON object with one key: "items".',
+    'Each item must be a study game entry based only on the provided module content.',
+    'Each item must include: word, clue, scenario, difficulty, topic, sourceReference.',
+    'Rules:',
+    '- word must be a real keyword, term, or concept from the module, not a random dictionary word.',
+    '- Use 1 to 4 words for word whenever possible.',
+    '- clue must help the learner guess the term from a definition or hint.',
+    '- scenario must read like a short exam-style situation that still points to the same term.',
+    '- Balance difficulties across easy, medium, and hard.',
+    '- Avoid repeating words or near-duplicates.',
+    '- sourceReference should be a short reference like the module title or topic label.',
+    '- Return JSON only.',
+    `Module title: ${moduleTitle}`,
+    'Key concepts:',
+    conceptContext || 'None provided',
+    'Source text:',
+    text.slice(0, 4000),
+  ].join('\n');
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = response.choices?.[0]?.message?.content || '';
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return localFallback;
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const finalized = finalizeWordChallenges(parsed.items || [], moduleTitle, 18, language);
+    return finalized.length > 0 ? finalized : localFallback;
+  } catch (error) {
+    console.error('Word challenge generation failed:', error.message);
+    return localFallback;
+  }
+};
+
 const processWithAI = async (text, generationOptions = {}) => {
   const profile = normalizeGenerationOptions(generationOptions);
   const cleaned = stripPdfNoise(text);
@@ -1509,12 +2053,24 @@ const processWithAI = async (text, generationOptions = {}) => {
     const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, generationContext);
     const summary = summarizeLocally(cleaned);
     const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned), language);
+    const flashcards = profile.format === 'Quiz'
+      ? []
+      : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12);
+    const wordChallenges = buildLocalWordChallenges(
+      cleaned,
+      conceptDetails,
+      flashcards,
+      quizQuestions,
+      generationOptions.title,
+      language,
+    );
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12),
+      flashcards,
       quizQuestions,
+      wordChallenges,
       aiAvailable: false
     };
   }
@@ -1576,12 +2132,23 @@ const processWithAI = async (text, generationOptions = {}) => {
       keyConcepts.length > 0 ? keyConcepts : extractCandidateConcepts(cleaned),
       language
     );
+    const flashcards = profile.format === 'Quiz'
+      ? []
+      : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12);
+    const wordChallenges = await generateWordChallengesWithAI(
+      cleaned,
+      conceptDetails,
+      flashcards,
+      quizData.questions || [],
+      generationContext,
+    );
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12),
+      flashcards,
       quizQuestions: quizData.questions || [],
+      wordChallenges,
       aiAvailable: true
     };
   } catch (err) {
@@ -1590,12 +2157,24 @@ const processWithAI = async (text, generationOptions = {}) => {
     const quizQuestions = profile.format === 'Flashcards' ? [] : generateMultipleChoiceQuestions(cleaned, generationContext);
     const summary = summarizeLocally(cleaned);
     const conceptDetails = buildConceptDetails(cleaned, extractCandidateConcepts(cleaned), language);
+    const flashcards = profile.format === 'Quiz'
+      ? []
+      : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12);
+    const wordChallenges = buildLocalWordChallenges(
+      cleaned,
+      conceptDetails,
+      flashcards,
+      quizQuestions,
+      generationOptions.title,
+      language,
+    );
 
     return {
       summary,
       keyConcepts: conceptDetails,
-      flashcards: profile.format === 'Quiz' ? [] : finalizeFlashcards(buildStudyFlashcards(cleaned, conceptDetails, generationContext), 12),
+      flashcards,
       quizQuestions,
+      wordChallenges,
       aiAvailable: false,
       error: formatOpenAIError(err)
     };
@@ -1668,6 +2247,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
       summary: aiResult.summary,
       keyConcepts: aiResult.keyConcepts,
       flashcards: aiResult.flashcards,
+      wordChallenges: aiResult.wordChallenges,
       quizQuestions: aiResult.quizQuestions,
       fileName: req.file?.originalname
     });
@@ -1702,6 +2282,198 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.get('/word-challenge', auth, async (req, res) => {
+  try {
+    const { moduleId, difficulty } = req.query;
+    const wordSourceMode = normalizeWordSourceMode(req.query.mode);
+
+    if (wordSourceMode !== 'study') {
+      const modules = await Module.find({ userId: req.user.id })
+        .select('wordChallenges');
+      const excludedModuleWords = collectModuleWordExclusions(modules);
+
+      return res.json({
+        selectedMode: wordSourceMode,
+        modules: [],
+        excludedModuleWords,
+        items: dedupeWordChallengeSessionItems(
+          buildCatalogWordChallengeItems(wordSourceMode, difficulty),
+          excludedModuleWords,
+        ),
+      });
+    }
+
+    const query = { userId: req.user.id };
+    if (moduleId && isValidModuleId(moduleId)) {
+      query._id = moduleId;
+    }
+
+    const modules = await Module.find(query)
+      .select('title originalText keyConcepts flashcards quizQuestions wordChallenges')
+      .sort({ createdAt: -1 });
+
+    const hydratedModules = [];
+
+    for (const module of modules) {
+      let wordChallenges = Array.isArray(module.wordChallenges) ? module.wordChallenges : [];
+
+      if (wordChallenges.length === 0 && module.originalText?.trim()) {
+        wordChallenges = buildLocalWordChallenges(
+          module.originalText,
+          module.keyConcepts || [],
+          module.flashcards || [],
+          module.quizQuestions || [],
+          module.title,
+          detectContentLanguage(module.originalText, module.title),
+        );
+
+        if (wordChallenges.length > 0) {
+          module.wordChallenges = wordChallenges;
+          await module.save();
+        }
+      }
+
+      hydratedModules.push({
+        moduleId: module._id,
+        title: module.title,
+        wordChallenges,
+      });
+    }
+
+    const normalizedDifficulty = difficulty ? normalizeChallengeDifficulty(difficulty, '') : '';
+    const items = hydratedModules.flatMap((module) =>
+      (module.wordChallenges || [])
+        .filter((item) => !normalizedDifficulty || item.difficulty === normalizedDifficulty)
+        .map((item, index) => ({
+          id: `${module.moduleId}-${normalizeForCompare(item.word)}-${index}`,
+          moduleId: module.moduleId,
+          moduleTitle: module.title,
+          word: item.word,
+          clue: item.clue,
+          hint: item.clue,
+          scenario: item.scenario,
+          difficulty: item.difficulty,
+          topic: item.topic,
+          category: item.topic || 'Module concept',
+          source: item.sourceReference || module.title,
+          sourceReference: item.sourceReference || module.title,
+          wordSourceMode,
+        }))
+    );
+
+    res.json({
+      selectedMode: wordSourceMode,
+      modules: hydratedModules.map((module) => ({
+        moduleId: module.moduleId,
+        title: module.title,
+        challengeCount: module.wordChallenges.length,
+      })),
+      excludedModuleWords: [],
+      items,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post('/word-challenge/generate-session', auth, async (req, res) => {
+  try {
+    const wordSourceMode = normalizeWordSourceMode(req.body?.mode);
+    const difficulty = req.body?.difficulty ? normalizeChallengeDifficulty(req.body.difficulty, '') : '';
+    const requestedModuleId =
+      req.body?.moduleId && req.body.moduleId !== 'all' ? String(req.body.moduleId) : '';
+    const excludeWords = Array.isArray(req.body?.excludeWords)
+      ? req.body.excludeWords.map((word) => String(word || '')).filter(Boolean)
+      : [];
+
+    const moduleQuery = { userId: req.user.id };
+    if (requestedModuleId && isValidModuleId(requestedModuleId)) {
+      moduleQuery._id = requestedModuleId;
+    }
+
+    const modules = await Module.find(
+      wordSourceMode === 'study' ? moduleQuery : { userId: req.user.id }
+    )
+      .select('title originalText keyConcepts flashcards quizQuestions wordChallenges')
+      .sort({ createdAt: -1 });
+    const excludedModuleWords = collectModuleWordExclusions(modules);
+
+    let items = [];
+
+    if (wordSourceMode === 'study') {
+      items = buildStudySessionItems(modules, difficulty, excludeWords, WORD_CHALLENGE_SESSION_TARGET);
+
+      if (modules.length > 0 && items.length < WORD_CHALLENGE_SESSION_MIN) {
+        const aiItems = await generateSessionWordsWithAI({
+          mode: 'study',
+          difficulty,
+          excludeWords: [...excludeWords, ...items.map((item) => item.word)],
+          modules,
+          requestedModuleId,
+          limit: WORD_CHALLENGE_SESSION_TARGET - items.length,
+        });
+        items = dedupeWordChallengeSessionItems([...items, ...aiItems], excludeWords);
+      }
+    } else {
+      items = await generateSessionWordsWithAI({
+        mode: wordSourceMode,
+        difficulty,
+        excludeWords: [...excludeWords, ...excludedModuleWords],
+        requestedModuleId,
+        limit: WORD_CHALLENGE_SESSION_TARGET,
+      });
+
+      if (items.length < WORD_CHALLENGE_SESSION_MIN) {
+        const fallbackItems = buildSessionFallbackItems({
+          mode: wordSourceMode,
+          difficulty,
+          excludeWords: [...excludeWords, ...excludedModuleWords, ...items.map((item) => item.word)],
+          limit: WORD_CHALLENGE_SESSION_TARGET - items.length,
+        });
+        items = dedupeWordChallengeSessionItems([...items, ...fallbackItems], excludeWords);
+      }
+    }
+
+    if (wordSourceMode !== 'study' && items.length < WORD_CHALLENGE_SESSION_MIN) {
+      const emergencyItems = buildEmergencySessionFallbackItems({
+        excludeWords: [...excludeWords, ...excludedModuleWords, ...items.map((item) => item.word)],
+        limit: WORD_CHALLENGE_SESSION_TARGET - items.length,
+      });
+      items = dedupeWordChallengeSessionItems([...items, ...emergencyItems], excludeWords);
+    }
+
+    const finalItems = shuffleItems(items).slice(0, WORD_CHALLENGE_SESSION_TARGET);
+
+    if (wordSourceMode === 'study' && finalItems.length === 0) {
+      return res.status(400).json({
+        selectedMode: wordSourceMode,
+        generated: false,
+        message: 'Study Mode could not find enough words in your uploaded modules.',
+        items: [],
+        modules: modules.map((module) => ({
+          moduleId: module._id,
+          title: module.title,
+        })),
+      });
+    }
+
+    return res.json({
+      selectedMode: wordSourceMode,
+      generated: true,
+      items: finalItems,
+      modules:
+        wordSourceMode === 'study'
+          ? modules.map((module) => ({
+              moduleId: module._id,
+              title: module.title,
+            }))
+          : [],
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 router.post('/regenerate-all', auth, async (req, res) => {
   try {
     const modules = await Module.find({ userId: req.user.id }).sort({ createdAt: -1 });
@@ -1732,6 +2504,7 @@ router.post('/regenerate-all', auth, async (req, res) => {
       module.summary = aiResult.summary;
       module.keyConcepts = aiResult.keyConcepts;
       module.flashcards = aiResult.flashcards;
+      module.wordChallenges = aiResult.wordChallenges;
       module.quizQuestions = aiResult.quizQuestions;
       module.usedQuestionIndices = [];
 
@@ -1762,6 +2535,10 @@ router.post('/regenerate-all', auth, async (req, res) => {
 
 router.get('/:id', auth, async (req, res) => {
   try {
+    if (!isValidModuleId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid module id' });
+    }
+
     const module = await Module.findOne({ _id: req.params.id, userId: req.user.id });
     if (!module) {
       return res.status(404).json({ message: 'Module not found' });
@@ -1774,6 +2551,10 @@ router.get('/:id', auth, async (req, res) => {
 
 router.get('/:id/file', auth, async (req, res) => {
   try {
+    if (!isValidModuleId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid module id' });
+    }
+
     const module = await Module.findOne({ _id: req.params.id, userId: req.user.id }).select('title fileName fileType pdfData');
     if (!module) {
       return res.status(404).json({ message: 'Module not found' });
@@ -1795,6 +2576,10 @@ router.get('/:id/file', auth, async (req, res) => {
 
 router.post('/:id/quiz', auth, async (req, res) => {
   try {
+    if (!isValidModuleId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid module id' });
+    }
+
     const module = await Module.findOne({ _id: req.params.id, userId: req.user.id });
     if (!module) {
       return res.status(404).json({ message: 'Module not found' });
@@ -1867,6 +2652,7 @@ router.post('/:id/regenerate-quiz', auth, async (req, res) => {
     module.summary = aiResult.summary;
     module.keyConcepts = aiResult.keyConcepts;
     module.flashcards = aiResult.flashcards;
+    module.wordChallenges = aiResult.wordChallenges;
     module.quizQuestions = aiResult.quizQuestions;
     module.usedQuestionIndices = []; // Reset used questions
     
